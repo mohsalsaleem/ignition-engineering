@@ -1,0 +1,142 @@
+# Stages
+
+Each kind takes a route through these stages. `ignition brief <ID>` shows the
+item's route.
+
+| Kind | Route |
+| --- | --- |
+| initiative | intake → shape → design → plan → deliver → observe → closed |
+| feature | intake → shape → design → plan → build → verify → release → observe → closed |
+| bug | intake → reproduce → diagnose → build → verify → release → closed |
+| task | intake → plan → build → verify → release → closed |
+| investigation | intake → method → findings → decision → closed |
+| incident | contain → timeline → recover → review → closed |
+
+Two things change a route:
+- A low-risk feature skips design.
+- `release: none` in the brief's frontmatter skips release. Use it only when
+  nothing ships to users, and log why.
+
+## intake
+
+**Record:** `brief.md`: Request; `title`, `size` and `risk` set.
+**Do:** write the request in the requester's words, and say who asked. Set
+the kind, risk and size (see SKILL.md). If the request mixes several changes,
+make it an initiative, or create one item per change.
+
+## shape
+
+**Record:** `brief.md`: Problem, Outcome, Acceptance criteria, Scope.
+**Owner decides** for normal and high risk.
+**Do:**
+- **Problem:** who is affected and what fails or is missing today. Use
+  specifics, not "users want".
+- **Outcome:** what will be observably true afterwards.
+- **Acceptance criteria:** numbered, as "Given / when / then". Include at
+  least one failure, permission or withdrawal path.
+- **Scope:** the smallest useful slice, what is explicitly out, and
+  dependencies.
+
+**Good looks like:** someone else could test it from the criteria alone.
+
+## design
+
+**Record:** `design.md`: Context, Options, Decision, Impacts, Test strategy.
+**Owner decides** for high risk.
+**Do:**
+- Read the code it touches first. Context is the real constraints: existing
+  code, data, users, operations.
+- Give at least two real options, each with costs and failure modes.
+  "Do nothing" counts if it's real.
+- Under Decision, say which option and why. A choice that affects the whole
+  product also gets `ignition decision`, linked here.
+- Under Impacts, cover data, security and privacy, migrations and
+  compatibility, rollback, observability and cost. Write "none" where there
+  is none.
+- Under Test strategy, say which tests prove each criterion and each failure
+  path.
+
+## plan
+
+**Record:** `plan.md`: a task table with at least one row. A task item also
+needs "Done when" in `brief.md`.
+**Do:** split the work into tasks, each small enough to review on its own,
+each with its own acceptance. Status is one of `todo`, `doing`, `done`,
+`dropped`. For an initiative, the tasks are child items: create them with
+`ignition new <kind> "..." --parent <ID>`, and put their IDs in the table.
+
+## reproduce (bug)
+
+**Record:** `brief.md`: Expected and actual, Reproduction; evidence with
+result **fail**.
+**Do:** write a test that fails because of the bug, run it, and record it:
+`ignition evidence <ID> --result fail ...`. Quote exact errors. If you can't
+reproduce it, log a finding and ask the owner. Don't guess a fix.
+
+## diagnose (bug)
+
+**Record:** `brief.md`: Root cause.
+**Owner decides** for high risk.
+**Do:** name the code and the condition that cause it, and say how you
+confirmed it. "Probably" is not a root cause.
+
+## build
+
+**Record:** every plan task done or dropped; a `change` log entry naming each
+commit.
+**Do:** write the test first, then the change. Keep commits small and follow
+the project's commit rules. After each commit:
+`ignition log <ID> --type change "<sha> <what and why>"`. Update the task
+statuses in `plan.md`. If the work outgrows the scope, log `--type scope` and
+stop.
+
+## verify
+
+**Record:** evidence with result **pass**.
+**Owner decides** before release, for normal and high risk.
+**Do:** run the project's checks and the acceptance criteria on the exact
+revision, and record each as evidence. For a bug, the test that failed in
+reproduce must now pass. Record failures too. Then ask the owner whether the
+evidence is enough to release.
+
+## release
+
+**Record:** `release.md`: Revision, Checks, Rollback, Production
+verification.
+**Do:** release only through the project's route, and only with the owner's
+approval when the project requires it. Name the exact revision, tag or
+digest. Under Rollback, give the real route back and whether it's compatible
+with data written since. Under Production verification, describe the real
+user journey you checked after release, with evidence. A health check isn't
+enough.
+
+## observe
+
+**Record:** `brief.md`: Result.
+**Do:** say whether the outcome happened, using real signals: use, errors,
+feedback. Link follow-up items.
+
+## deliver (initiative)
+
+**Record:** every child item closed.
+**Do:** work through the child items. Run `ignition status` to see them, and
+`ignition brief <child>` for each.
+
+## method, findings, decision (investigation)
+
+**Record:** `brief.md`: Question and Method; then Findings, with at least one
+evidence record; then Decision and Follow-up.
+**Owner decides** the decision for normal and high risk.
+**Do:** time-box the question. Every claim in Findings needs evidence. A
+production change the decision calls for gets its own work item, listed under
+Follow-up.
+
+## contain, timeline, recover, review (incident)
+
+**Record:** `brief.md`: Impact and Containment; then Timeline; then Recovery,
+with evidence of recovery; then Cause and Follow-up.
+**Owner decides** the review, at every risk level.
+**Do:** stop the impact first, and touch only what the project allows.
+Timeline entries are "time with zone · what happened · evidence". Recovery
+evidence is a real journey or data check. Cause separates facts from
+hypotheses, without blame. Follow-up lists the bugs and tasks you created.

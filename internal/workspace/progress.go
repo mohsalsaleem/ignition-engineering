@@ -188,7 +188,7 @@ var ErrNeedsOwner = errors.New("owner decision needed")
 // Advance moves an item to its next stage. The current stage's exit rules must
 // hold and any earlier problem must be fixed; where the owner decides, their
 // decision must be given and is recorded in the log.
-func (w *Workspace) Advance(id string, cp *Checkpoint, by string) (model.Stage, error) {
+func (w *Workspace) Advance(id string, cp *Checkpoint, by Actor) (model.Stage, error) {
 	it, err := w.Load(id)
 	if err != nil {
 		return "", err

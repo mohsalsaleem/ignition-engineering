@@ -96,3 +96,24 @@ func TestLogRoundTrip(t *testing.T) {
 		t.Fatalf("entries = %+v", entries)
 	}
 }
+
+func TestLogEntriesCarryAgentAndModel(t *testing.T) {
+	text := FormatEntry(Entry{At: "t1", Type: "change", By: "codex", Agent: "codex", Model: "gpt-x", Text: "abc fix"}) +
+		FormatEntry(Entry{At: "t2", Type: "note", By: "Owner", Text: "ok"})
+	if !strings.Contains(text, "## t1 · change · codex · codex · gpt-x · -\n") || !strings.Contains(text, "## t2 · note · Owner\n") {
+		t.Fatalf("formatted:\n%s", text)
+	}
+	entries, err := ParseLog(text)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if e := entries[0]; e.Agent != "codex" || e.Model != "gpt-x" || e.Session != "" {
+		t.Fatalf("entry = %+v", e)
+	}
+	if e := entries[1]; e.Agent != "" || e.By != "Owner" {
+		t.Fatalf("entry = %+v", e)
+	}
+	if _, err := ParseLog("## t · note · a · b\n"); err == nil {
+		t.Fatal("accepted a four-part heading")
+	}
+}

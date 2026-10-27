@@ -7,6 +7,9 @@ revision: {{.Revision}}
 environment: {{.Environment}}
 method: {{.Method}}
 by: {{.By}}
+agent:
+model:
+session:
 at: {{.At}}
 ---
 # Evidence: {{.Claim}}

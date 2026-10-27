@@ -7,17 +7,16 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/mohsalsaleem/ignition-engineering/internal/attach"
 	"github.com/mohsalsaleem/ignition-engineering/internal/model"
 	"github.com/mohsalsaleem/ignition-engineering/internal/workspace"
-	"github.com/mohsalsaleem/ignition-engineering/templates"
+	"github.com/mohsalsaleem/ignition-engineering/skill"
 )
 
-var version = "0.5.0"
+var version = "0.6.0"
 
 const usage = `ignition: structured engineering work for people and agents.
 
@@ -38,13 +37,23 @@ Work
   evidence ID --claim C --result pass|fail|inconclusive --revision R --environment E --method M [--observed O] [--limits L]
   decision "TITLE"                  create a product-wide decision record
   check [ID]                        report problems in the records; exits 1 if any
+  attribution [ID]                  who built what: people, agents and models, from the log
+  whoami                            who Ignition will record as acting
 Help
-  guide                             how an agent works with Ignition
+  guide                             how an agent works with Ignition (the skill's instructions)
+  skill install [--for all|claude|agents] [--project DIR] [--to DIR]
+                                    install the agent skill for Claude Code (.claude/skills)
+                                    and other agents (.agents/skills); default: both, in ~
+  skill print                       print the skill's SKILL.md
   version
 
-Flags for every command: --dir DIR (the workspace; default: found from the
-current folder, or $IGNITION_DIR) and --by NAME (who is acting; default:
-$IGNITION_ACTOR, then git user.name).
+Flags for every command:
+  --dir DIR       the workspace (default: found from the current folder, or $IGNITION_DIR)
+  --by NAME       who is acting (default: $IGNITION_ACTOR, then the agent, then git user.name)
+  --agent TOOL    the agent tool, e.g. claude-code, codex, cursor, gemini-cli
+                  (default: $IGNITION_AGENT, then detected from the environment)
+  --model ID      the exact model ID, e.g. claude-opus-5-5 (default: $IGNITION_MODEL)
+  --session ID    the agent's session ID (default: $IGNITION_SESSION, then detected)
 `
 
 func main() {
@@ -54,6 +63,9 @@ func main() {
 type cli struct {
 	out, errw io.Writer
 	dir, by   string
+	agent     string
+	model     string
+	session   string
 }
 
 // parse reads flags wherever they appear among the positional arguments.
@@ -83,6 +95,9 @@ func run(args []string, out, errw io.Writer) int {
 	fs.SetOutput(errw)
 	fs.StringVar(&c.dir, "dir", os.Getenv("IGNITION_DIR"), "workspace folder")
 	fs.StringVar(&c.by, "by", "", "who is acting")
+	fs.StringVar(&c.agent, "agent", "", "the agent tool")
+	fs.StringVar(&c.model, "model", "", "the exact model ID")
+	fs.StringVar(&c.session, "session", "", "the agent's session ID")
 	var err error
 	switch cmd {
 	case "init":
@@ -105,9 +120,14 @@ func run(args []string, out, errw io.Writer) int {
 		err = c.decision(fs, rest)
 	case "check":
 		err = c.check(fs, rest)
+	case "attribution":
+		err = c.attribution(fs, rest)
+	case "whoami":
+		err = c.whoami(fs, rest)
 	case "guide":
-		text, _ := templates.Render("GUIDE.md", nil)
-		fmt.Fprint(out, text)
+		fmt.Fprint(out, skill.Body())
+	case "skill":
+		err = c.skill(fs, rest)
 	case "version":
 		fmt.Fprintln(out, "ignition", version)
 	default:
@@ -142,21 +162,6 @@ func (c *cli) workspace() (*workspace.Workspace, error) {
 		return nil, err
 	}
 	return workspace.Open(root), nil
-}
-
-func (c *cli) actor() string {
-	if c.by != "" {
-		return c.by
-	}
-	if a := os.Getenv("IGNITION_ACTOR"); a != "" {
-		return a
-	}
-	if out, err := exec.Command("git", "config", "user.name").Output(); err == nil {
-		if s := strings.TrimSpace(string(out)); s != "" {
-			return s
-		}
-	}
-	return "unknown"
 }
 
 func want(pos []string, n int, what string) error {
@@ -230,7 +235,7 @@ func (c *cli) newItem(fs *flag.FlagSet, args []string) error {
 	if err != nil {
 		return err
 	}
-	it, err := w.NewItem(kind, pos[1], *risk, *size, *parent, c.actor())
+	it, err := w.NewItem(kind, pos[1], *risk, *size, *parent, c.actingAs())
 	if err != nil {
 		return err
 	}
@@ -388,7 +393,7 @@ func (c *cli) advance(fs *flag.FlagSet, args []string) error {
 	if *owner != "" || *decision != "" {
 		cp = &workspace.Checkpoint{Owner: *owner, Decision: *decision}
 	}
-	next, err := w.Advance(id, cp, c.actor())
+	next, err := w.Advance(id, cp, c.actingAs())
 	if err != nil {
 		return err
 	}
@@ -409,7 +414,7 @@ func (c *cli) log(fs *flag.FlagSet, args []string) error {
 	if err != nil {
 		return err
 	}
-	if err := w.Log(pos[0], *typ, c.actor(), pos[1]); err != nil {
+	if err := w.Log(pos[0], *typ, c.actingAs(), pos[1]); err != nil {
 		return err
 	}
 	fmt.Fprintf(c.out, "Logged a %s entry on %s.\n", *typ, pos[0])
@@ -429,7 +434,7 @@ func (c *cli) evidence(fs *flag.FlagSet, args []string) error {
 	if err != nil {
 		return err
 	}
-	in.By = c.actor()
+	in.By = c.actingAs()
 	eid, err := w.AddEvidence(id, in)
 	if err != nil {
 		return err
@@ -495,5 +500,52 @@ func (c *cli) check(fs *flag.FlagSet, args []string) error {
 		return errProblems
 	}
 	fmt.Fprintf(c.out, "%d item(s), no problems.\n", len(ids))
+	return nil
+}
+
+func (c *cli) skill(fs *flag.FlagSet, args []string) error {
+	target := fs.String("for", "all", "all, claude or agents")
+	project := fs.String("project", "", "install into this project instead of the home folder")
+	to := fs.String("to", "", "install into this folder")
+	pos, err := parse(fs, args)
+	if err != nil {
+		return err
+	}
+	if len(pos) != 1 || (pos[0] != "install" && pos[0] != "print") {
+		return errors.New("want `skill install [--for all|claude|agents] [--project DIR] [--to DIR]` or `skill print`")
+	}
+	if pos[0] == "print" {
+		files, err := skill.Files()
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(c.out, string(files["SKILL.md"]))
+		return nil
+	}
+	var dirs []string
+	switch {
+	case *to != "":
+		dir := *to
+		if filepath.Base(dir) != skill.Name {
+			dir = filepath.Join(dir, skill.Name) // a skill's folder must be named after it
+		}
+		dirs = []string{dir}
+	default:
+		base := *project
+		if base == "" {
+			if base, err = os.UserHomeDir(); err != nil {
+				return err
+			}
+		}
+		if dirs, err = skill.Targets(*target, base); err != nil {
+			return err
+		}
+	}
+	for _, dir := range dirs {
+		if err := skill.Install(dir); err != nil {
+			return err
+		}
+		fmt.Fprintf(c.out, "Installed the Ignition skill (ignition %s) in %s.\n", version, dir)
+	}
 	return nil
 }

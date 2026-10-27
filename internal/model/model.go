@@ -285,4 +285,4 @@ var Results = []string{"pass", "fail", "inconclusive"}
 var TaskStatuses = []string{"todo", "doing", "done", "dropped"}
 
 // Log entry types.
-var EntryTypes = []string{"note", "finding", "decision", "change", "handoff", "scope", "stage", "checkpoint"}
+var EntryTypes = []string{"note", "finding", "decision", "change", "handoff", "scope", "stage", "checkpoint", "evidence"}

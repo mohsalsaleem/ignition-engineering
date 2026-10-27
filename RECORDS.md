@@ -63,6 +63,17 @@ record it rather than retrying until green. "Merged", "deployed" or "returns
 appended, never edited. A correction is a new entry that says what it
 corrects.
 
+## Attribution
+
+Every log entry heading names who acted. A person's entry is
+`## <time> · <type> · <name>`. An agent's entry is
+`## <time> · <type> · <name> · <agent> · <model> · <session>`, with `-` for an
+unknown value. Evidence frontmatter has the same `by`, `agent`, `model` and
+`session` fields. Owner decisions name the owner and who recorded them.
+`ignition attribution` reports all of it. Until agent runs are bound to
+verified identities ([ROADMAP.md](ROADMAP.md)), an agent's name, model and
+session are what it reported.
+
 ## Privacy
 
 Never put secrets, credentials, private user data or raw production logs in

@@ -1,6 +1,7 @@
 # Agents on oap
 
-Start every session with `ignition brief <work-id>` and follow the work model.
+Agents follow the Ignition skill (`ignition skill install`, or `ignition guide`)
+and start every session with `ignition status` or `ignition brief <work-id>`.
 Product-specific rules for agents go below.
 
 ## Rules

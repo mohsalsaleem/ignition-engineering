@@ -12,6 +12,8 @@ import (
 	"github.com/mohsalsaleem/ignition-engineering/internal/model"
 )
 
+var agent = Actor{Name: "claude-code", Agent: "claude-code", Model: "claude-opus-5-5", Session: "s-1"}
+
 func newWorkspace(t *testing.T) *Workspace {
 	t.Helper()
 	root := t.TempDir()
@@ -45,7 +47,7 @@ func fill(t *testing.T, it *Item, file, section, content string) {
 
 func advance(t *testing.T, w *Workspace, id string, cp *Checkpoint) model.Stage {
 	t.Helper()
-	s, err := w.Advance(id, cp, "agent")
+	s, err := w.Advance(id, cp, agent)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +56,7 @@ func advance(t *testing.T, w *Workspace, id string, cp *Checkpoint) model.Stage 
 
 func mustFail(t *testing.T, w *Workspace, id string, cp *Checkpoint, want error, mention string) {
 	t.Helper()
-	_, err := w.Advance(id, cp, "agent")
+	_, err := w.Advance(id, cp, agent)
 	if !errors.Is(err, want) || !strings.Contains(err.Error(), mention) {
 		t.Fatalf("Advance = %v, want %v mentioning %q", err, want, mention)
 	}
@@ -62,7 +64,7 @@ func mustFail(t *testing.T, w *Workspace, id string, cp *Checkpoint, want error,
 
 func TestBugLifecycle(t *testing.T) {
 	w := newWorkspace(t)
-	it, err := w.NewItem(model.Bug, "Install ships a local image", "normal", "small", "", "agent")
+	it, err := w.NewItem(model.Bug, "Install ships a local image", "normal", "small", "", agent)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +78,7 @@ func TestBugLifecycle(t *testing.T) {
 	fill(t, it, "brief.md", "Reproduction", "Install with a local arm64 copy.")
 	mustFail(t, w, it.ID, nil, ErrNotReady, "no evidence with result fail")
 	if _, err := w.AddEvidence(it.ID, EvidenceInput{Claim: "Install refuses a released image", Result: "fail",
-		Revision: "abc123", Environment: "local", Method: "go test", By: "agent"}); err != nil {
+		Revision: "abc123", Environment: "local", Method: "go test", By: agent}); err != nil {
 		t.Fatal(err)
 	}
 	advance(t, w, it.ID, nil)
@@ -86,13 +88,13 @@ func TestBugLifecycle(t *testing.T) {
 		t.Fatalf("normal-risk diagnose needed no owner, got %s", s)
 	}
 	mustFail(t, w, it.ID, nil, ErrNotReady, "no change entry")
-	if err := w.Log(it.ID, "change", "agent", "Commit c18a6ac skips the local check."); err != nil {
+	if err := w.Log(it.ID, "change", agent, "Commit c18a6ac skips the local check."); err != nil {
 		t.Fatal(err)
 	}
 	advance(t, w, it.ID, nil)
 
 	if _, err := w.AddEvidence(it.ID, EvidenceInput{Claim: "Released image is pulled", Result: "pass",
-		Revision: "c18a6ac", Environment: "local", Method: "go test", By: "agent"}); err != nil {
+		Revision: "c18a6ac", Environment: "local", Method: "go test", By: agent}); err != nil {
 		t.Fatal(err)
 	}
 	mustFail(t, w, it.ID, nil, ErrNeedsOwner, "release to users")
@@ -130,7 +132,7 @@ func TestBugLifecycle(t *testing.T) {
 
 func TestEmptyingAPassedStageIsAProblem(t *testing.T) {
 	w := newWorkspace(t)
-	it, _ := w.NewItem(model.Task, "Rotate logs", "low", "small", "", "agent")
+	it, _ := w.NewItem(model.Task, "Rotate logs", "low", "small", "", agent)
 	fill(t, it, "brief.md", "Request", "Logs fill the disk.")
 	advance(t, w, it.ID, nil)
 
@@ -146,7 +148,7 @@ func TestEmptyingAPassedStageIsAProblem(t *testing.T) {
 
 func TestHighRiskFeatureStopsForTheOwnerTwiceBeforeBuilding(t *testing.T) {
 	w := newWorkspace(t)
-	it, _ := w.NewItem(model.Feature, "Withdraw an application", "high", "medium", "", "agent")
+	it, _ := w.NewItem(model.Feature, "Withdraw an application", "high", "medium", "", agent)
 	fill(t, it, "brief.md", "Request", "Candidates want to withdraw.")
 	advance(t, w, it.ID, nil)
 	for _, s := range []string{"Problem", "Outcome", "Acceptance criteria", "Scope"} {
@@ -166,15 +168,15 @@ func TestHighRiskFeatureStopsForTheOwnerTwiceBeforeBuilding(t *testing.T) {
 
 func TestInitiativeClosesOnlyWhenChildrenAreClosed(t *testing.T) {
 	w := newWorkspace(t)
-	init, _ := w.NewItem(model.Initiative, "Build an ATS", "high", "large", "", "agent")
-	if _, err := w.NewItem(model.Task, "Child", "low", "small", "missing", "agent"); err == nil {
+	init, _ := w.NewItem(model.Initiative, "Build an ATS", "high", "large", "", agent)
+	if _, err := w.NewItem(model.Task, "Child", "low", "small", "missing", agent); err == nil {
 		t.Fatal("accepted a missing parent")
 	}
-	child, err := w.NewItem(model.Task, "Child", "low", "small", init.ID, "agent")
+	child, err := w.NewItem(model.Task, "Child", "low", "small", init.ID, agent)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := w.NewItem(model.Task, "Grandchild", "low", "small", child.ID, "agent"); err == nil {
+	if _, err := w.NewItem(model.Task, "Grandchild", "low", "small", child.ID, agent); err == nil {
 		t.Fatal("a task accepted a child")
 	}
 	it, _ := w.Load(init.ID)
@@ -200,11 +202,11 @@ func (r *repeatReader) Read(p []byte) (int, error) {
 func TestANewItemNeverReusesAnExistingID(t *testing.T) {
 	w := newWorkspace(t)
 	w.Rand = &repeatReader{n: 2}
-	a, err := w.NewItem(model.Task, "A", "low", "small", "", "agent")
+	a, err := w.NewItem(model.Task, "A", "low", "small", "", agent)
 	if err != nil {
 		t.Fatal(err)
 	}
-	b, err := w.NewItem(model.Task, "B", "low", "small", "", "agent")
+	b, err := w.NewItem(model.Task, "B", "low", "small", "", agent)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -218,8 +220,8 @@ func TestANewItemNeverReusesAnExistingID(t *testing.T) {
 
 func TestLogRefusesStageEntries(t *testing.T) {
 	w := newWorkspace(t)
-	it, _ := w.NewItem(model.Task, "T", "low", "small", "", "agent")
-	if err := w.Log(it.ID, "checkpoint", "agent", "Owner said yes"); err == nil {
+	it, _ := w.NewItem(model.Task, "T", "low", "small", "", agent)
+	if err := w.Log(it.ID, "checkpoint", agent, "Owner said yes"); err == nil {
 		t.Fatal("an agent wrote a checkpoint entry directly")
 	}
 }
@@ -237,5 +239,48 @@ func TestFind(t *testing.T) {
 	}
 	if _, err := Find(t.TempDir()); err == nil {
 		t.Fatal("found a workspace in an empty folder")
+	}
+}
+
+func TestAttribution(t *testing.T) {
+	w := newWorkspace(t)
+	owner := Actor{Name: "Owner"}
+	it, _ := w.NewItem(model.Bug, "Crash on empty export", "normal", "small", "", agent)
+	fill(t, it, "brief.md", "Request", "Export crashes.")
+	advance(t, w, it.ID, nil)
+	fill(t, it, "brief.md", "Expected and actual", "A file; a crash.")
+	fill(t, it, "brief.md", "Reproduction", "Export an empty report.")
+	other := Actor{Name: "codex", Agent: "codex", Model: "gpt-x"}
+	if _, err := w.AddEvidence(it.ID, EvidenceInput{Claim: "Crashes", Result: "fail", Revision: "a1", Environment: "local", Method: "test", By: other}); err != nil {
+		t.Fatal(err)
+	}
+	if err := w.Log(it.ID, "change", agent, "b2c3d4e fix the crash"); err != nil {
+		t.Fatal(err)
+	}
+	if err := w.Log(it.ID, "note", owner, "Looks right."); err != nil {
+		t.Fatal(err)
+	}
+	if err := w.Log(it.ID, "evidence", agent, "I checked it"); err == nil {
+		t.Fatal("an evidence entry was logged without evidence")
+	}
+
+	it, _ = w.Load(it.ID)
+	contribs, _ := it.Attribution()
+	if len(contribs) != 3 {
+		t.Fatalf("contributors = %+v", contribs)
+	}
+	a, c, o := contribs[0], contribs[1], contribs[2]
+	if a.Actor.Model != "claude-opus-5-5" || a.Entries["stage"] != 2 || a.Entries["change"] != 1 ||
+		len(a.Commits) != 1 || a.Commits[0] != "b2c3d4e" || len(a.Sessions) != 1 {
+		t.Errorf("agent contribution = %+v", a)
+	}
+	if c.Actor.Agent != "codex" || c.Entries["evidence"] != 1 {
+		t.Errorf("codex contribution = %+v", c)
+	}
+	if o.Actor.Name != "Owner" || o.Actor.Agent != "" || o.Entries["note"] != 1 {
+		t.Errorf("owner contribution = %+v", o)
+	}
+	if e := it.Evidence[0]; e.Get("agent") != "codex" || e.Get("model") != "gpt-x" || e.Get("by") != "codex" {
+		t.Errorf("evidence attribution: agent %q model %q by %q", e.Get("agent"), e.Get("model"), e.Get("by"))
 	}
 }
