@@ -21,7 +21,7 @@ Ignition will not initially replace a tracker, CI service, deployment platform, 
 
 ## Record model
 
-The proposed record format is a `record.toml` metadata file beside a `README.md` narrative file. Each record directory has a stable ID. TOML holds the fields Ignition must filter, validate, and link: record type, status, owner, product, relevant timestamps, classification, and references. Markdown holds rationale, analysis, acceptance criteria, and human explanation. The product-level `project.toml` holds its identity and tool mappings; `PROJECT.md` and `AGENTS.md` hold context and instructions. [FORMAT.md](FORMAT.md) defines the proposed layout and an example.
+The proposed record format is one Markdown file per record with TOML frontmatter between `+++` fences. The frontmatter holds the fields Ignition must filter, validate, and link: ID, record type, status, owner, product, relevant timestamps, classification, and references. The body holds rationale, analysis, acceptance criteria, and human explanation. The product-level `PROJECT.md` uses the same format for identity and tool mappings; `AGENTS.md` holds standing agent instructions. [FORMAT.md](FORMAT.md) defines the proposed layout and an example.
 
 | Type | Key relationships | Distinctive fields |
 | --- | --- | --- |

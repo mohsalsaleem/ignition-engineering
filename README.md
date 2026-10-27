@@ -16,7 +16,7 @@ The [GitHub adapter](adapters/github/README.md) is optional. A product can use a
 
 [DESIGN.md](DESIGN.md) is the proposed product architecture and first workbench design. Its status is **Proposed** until the owner accepts it.
 
-[FORMAT.md](FORMAT.md) proposes TOML metadata beside Markdown narratives for future versioned records. The current v0.4 templates remain Markdown-only.
+[FORMAT.md](FORMAT.md) proposes one Markdown file per record, with validated TOML frontmatter above its human-readable body. The current v0.4 templates do not yet include frontmatter or validation.
 
 [AGENT_GOVERNANCE.md](AGENT_GOVERNANCE.md) proposes how Ignition will attribute agent runs, audit consequential actions, and account for development usage and cost. Automatic capture is planned, not present in v0.4.
 

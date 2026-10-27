@@ -14,7 +14,7 @@ Ignition must answer four questions for each product change: which sessions cont
 
 An agent run belongs to one product. It can contribute to several work items and may have child runs. A work item can have many runs. The run ID is passed through task prompts, handoffs, PR descriptions, and evidence records so attribution survives a tool or agent change. Child-run usage is counted once from its own metering source; a parent summary does not duplicate it.
 
-The run's `README.md` gives a short handoff: goal, changed files and revisions, tests attempted and observed results, decisions proposed, open questions, and next owner. It does not retain a raw transcript, secrets, private reasoning, or copied user data. Exact prompts or tool traces are retained only when a product has a justified, access-controlled evidence need and a retention period.
+The run's Markdown body gives a short handoff: goal, changed files and revisions, tests attempted and observed results, decisions proposed, open questions, and next owner. It does not retain a raw transcript, secrets, private reasoning, or copied user data. Exact prompts or tool traces are retained only when a product has a justified, access-controlled evidence need and a retention period.
 
 ## Attribution and accounting
 
