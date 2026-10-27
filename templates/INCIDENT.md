@@ -1,5 +1,6 @@
 # Incident: <short factual title>
 
+**Status:** Detected / Containing / Recovering / Monitoring / Reviewed / Done
 **Severity and owner:** <level, name>
 **Started / detected / mitigated / resolved:** <times with timezone>
 **Customer impact:** <who, what, duration; state unknowns>

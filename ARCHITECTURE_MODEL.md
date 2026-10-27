@@ -18,7 +18,7 @@ Use a small, versioned architecture graph in `.ignition/architecture/` as the de
 | Relationship | Communication or data movement between elements | Web publishes job to queue; worker reads it |
 | Journey or flow | Important behavior across elements | Candidate applies; employer advances stage |
 
-Give each element a stable ID, owner, purpose, and links to its source of truth. Relationships name direction, interaction, data classification, trust boundary, and failure effect where relevant. Deployment mappings name the intended environment and release unit; the platform's live deployment ID and image digest belong in observed evidence.
+Give each element a stable ID, owner, purpose, and links to its source of truth. Architecture element IDs are scoped to their product graph; engineering record IDs use the product-prefixed ULID format in [FORMAT.md](FORMAT.md). Relationships name direction, interaction, data classification, trust boundary, and failure effect where relevant. Deployment mappings name the intended environment and release unit; the platform's live deployment ID and image digest belong in observed evidence.
 
 ```text
 .ignition/architecture/

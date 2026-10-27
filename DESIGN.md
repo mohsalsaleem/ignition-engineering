@@ -23,19 +23,22 @@ Ignition will not initially replace a tracker, CI service, deployment platform, 
 
 The proposed format follows the purpose of each file. Human narratives such as work items, decisions, run handoffs, evidence, releases, and incidents are Markdown; records that need indexing have a small YAML frontmatter block. Machine-only project configuration, audit events, and usage/cost observations are standalone YAML files. General notes and `AGENTS.md` can be plain Markdown. [FORMAT.md](FORMAT.md) defines the layout, examples, and validation rules. Each structured record still has a stable ID, type, provenance, links, and a versioned schema.
 
-Records are grouped by their primary owner: an initiative contains its child work; a work folder contains its design, agent runs, local evidence, and audit events; a run contains its usage observations. Releases and incidents have their own folders for evidence and decisions that belong to those events. Product-wide architecture, reusable decisions, and shared billing pools remain at the top level. Globally unique IDs and explicit links handle records that contribute to more than one work item without copying them.
+Records are grouped by their primary owner: an initiative contains its child work; a work folder contains its design, agent runs, local evidence, and audit events; a run contains its usage observations. Releases and incidents have their own folders for evidence and decisions that belong to those events. Product-wide architecture, reusable decisions, and shared billing pools remain at the top level. Collision-resistant product-prefixed ULIDs and explicit links handle records that contribute to more than one work item without copying them.
 
 | Type | Key relationships | Distinctive fields |
 | --- | --- | --- |
+| Initiative | Child work, outcome evidence, architecture | Goal, boundaries, success measure, priority, owner |
 | Work item | Design, PR, evidence, release | Kind, size, risk, urgency, outcome, acceptance criteria, initial blast radius |
+| Architecture model | Work items, flows, deployments, releases | Systems, runtimes, relationships, owners, data and trust boundaries |
 | Design/decision | Work item, superseding decision | Options, chosen approach, reason, data/security impact |
 | Evidence | Work item, commit, CI run, deployment | Claim, method, environment, fixture, time, result, limits, retention |
-| Review outcome | PR, work item, decision | Consequential comments, resolution, remaining concern |
 | Release | Work items, deployments, evidence | Accepted revision, checks, approval, rollback, observation |
 | Incident | Release, monitoring, follow-up work | Impact, timeline, cause, recovery, prevention |
 | Agent run | Work item, parent run, code revision, evidence | Agent and model identity, instructions revision, scope, start/end, outputs, outcome |
 | Audit event | Run, work item, review or release | Actor, action, time, source, decision, affected revision |
 | Usage/cost observation | Run when applicable, work item, release, provider source | Units, currency, amount if known, estimate/bill status, attribution, reconciliation |
+
+Review comments stay in the PR. A consequential review outcome is recorded as an audit event under the relevant work or release; an accepted architectural decision gets a decision note. This avoids a separate, undefined review-outcome record type.
 
 The application commit SHA, image digest or deployment ID, environment, time, and method are required before a result can be displayed as **Verified**. A proposal, an agent inference, a test failure, and an untested claim have visibly different states. Corrections and superseding decisions remain traceable in Git history.
 
@@ -71,7 +74,7 @@ Agent activity is part of the engineering record, not an invisible side channel.
 
 The audit trail records consequential actions and decisions: delegation, changes of scope, PR submission, review outcome, test evidence, gate exception, approval, deployment, and rollback. Each event has an actor, time, source, and affected revision. Agent self-reports are marked as claims until corroborated by Git, CI, deployment, or a human decision. Protected Git history and links to the original systems make corrections and later review possible.
 
-Usage and cost observations link to runs when applicable, or directly to work, release, or a shared pool. They can cover agent providers, CI, staging infrastructure, and other development services; human review time is optional and self-reported. Each observation names its metering source, unit, quantity, currency and amount when available, attribution rule, and whether the amount is measured, estimated, reconciled, or unknown. Sessions spanning multiple work items have explicit allocation shares; unattributed usage stays in an **Unallocated** bucket. Ignition can then roll up cost by work item, initiative, product, release, provider, or period without pretending that every provider session has a billable per-run price. Budgets and alerts guide work; spending or completing a run does not waive engineering gates.
+Usage and cost observations link to runs when applicable, or directly to work, release, or a shared pool. They can cover agent providers, CI, staging infrastructure, and other development services; human review time is optional and self-reported. Each observation names its metering source, unit, quantity, currency and amount when available, attribution rule, and whether the amount is measured, estimated, reconciled, or unknown. The observation owns its allocation shares, which total 10,000 basis points across work items and an explicit **Unallocated** target. Ignition can then roll up cost by work item, initiative, product, release, provider, or period without pretending that every provider session has a billable per-run price. Budgets and alerts guide work; spending or completing a run does not waive engineering gates.
 
 ## Experience
 
@@ -79,14 +82,14 @@ Ignition starts as a local command-line tool with readable Markdown records. A l
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ IGNITION   Example App ▾    App: abc1234   Records: def5678   Sync: current │
+│ IGNITION   Example App ▾    App: abc1234   Records: def5678   Sync: current  │
 ├───────────────┬───────────────────────────────────────┬──────────────────────┤
-│ Work queue    │ WORK-42  Bug · Small · High risk       │ Evidence & risk      │
+│ Work queue    │ WORK-42  Bug · Small · High risk      │ Evidence & risk      │
 │ Decisions     │ Outcome · Criteria · Design           │ ✓ Local tests        │
-│ Releases      │ Change · Review · Staging · Production │ ✓ Staging journey    │
+│ Releases      │ Change · Review · Stage · Production  │ ✓ Staging journey    │
 │ Incidents     │ [current stage: In review]            │ ? Production         │
-│ Search        │                                       │ Blast radius        │
-│               │ Withdrawn CV access · review timeline  │ Data · permissions   │
+│ Search        │                                       │ Blast radius         │
+│               │ Withdrawn CV access · review timeline │ Data · permissions   │
 └───────────────┴───────────────────────────────────────┴──────────────────────┘
 ```
 
@@ -114,13 +117,13 @@ flowchart LR
 
 Adapters are optional and permission scoped. The core works from local Git and manually entered links. An adapter may fetch PR, CI, deployment, or monitoring metadata and propose an evidence update; a person or configured policy decides whether it is accepted. Credentials remain in the OS credential store or provider auth flow, never in records. In the first version adapters are read-only.
 
-Agent integration reads `.ignition/project.yaml`, `.ignition/PROJECT.md`, `.ignition/AGENTS.md`, and the active work item. It can suggest or write records to the Ignition checkout and make application changes through normal Git/PR review. It records a run ID at start and a linked outcome at handoff. A completed agent run is not proof: checks and human/release decisions remain separate. Provider usage and billing adapters are read-only; they must preserve source references and uncertainty.
+In the proposed version, agent integration reads `.ignition/project.yaml`, `.ignition/PROJECT.md`, `.ignition/AGENTS.md`, and the active work item. The v0.4 attach script does not create `project.yaml`. An agent can suggest or write records to the Ignition checkout and make application changes through normal Git/PR review. It records a run ID at start and a linked outcome at handoff. A completed agent run is not proof: checks and human/release decisions remain separate. Provider usage and billing adapters are read-only; they must preserve source references and uncertainty.
 
 ## First usable version
 
-1. Attach an independent `.ignition/` checkout without changing application Git status (already implemented and tested).
-2. Add schemas and validation for Project, Architecture, Work item, Decision, Evidence, Release, Incident, Agent run, Audit event, and Usage/cost records. Keep their Markdown readable without the tool.
-3. Add commands to create records, start and close an agent run, link application revisions/PRs, list work by state, report missing evidence and affected architecture elements, and show attributed versus unallocated usage. Do not run arbitrary project commands from record content.
+1. Attach an independent `.ignition/` checkout without changing application Git status. The basic script exists; linked-worktree and failure-path hardening is in [PR #2](https://github.com/mohsalsaleem/ignition-engineering/pull/2).
+2. Add schemas and validation for Project, Architecture, Initiative, Work item, Decision, Evidence, Release, Incident, Agent run, Audit event, and Usage/cost records. Keep their Markdown readable without the tool.
+3. Add commands to mint collision-resistant IDs, create records, start and close an agent run, link application revisions/PRs, list work by state, report missing evidence and affected architecture elements, and show attributed versus unallocated usage. Do not run arbitrary project commands from record content.
 4. Add bounded read-only GitHub and deployment adapters, then a provider usage adapter. Manual links and explicit **Unknown** cost remain supported.
 5. Pilot one real Talintr change with a small architecture inventory, run attribution, evidence, cost capture, and a release/incident review before building the local workbench.
 

@@ -14,13 +14,13 @@ Ignition must answer four questions for each product change: which sessions cont
 
 An agent run belongs to one product. It can contribute to several work items and may have child runs. A work item can have many runs. The run ID is passed through task prompts, handoffs, PR descriptions, and evidence records so attribution survives a tool or agent change. Child-run usage is counted once from its own metering source; a parent summary does not duplicate it.
 
-File an agent run under its primary work item or incident, and file per-run usage beneath that run. Other work items reference the same run ID and declare allocation shares. Shared invoices and subscriptions belong in a product-level cost pool until their allocation can be justified.
+File an agent run under its primary work item or incident, and file per-run usage beneath that run. A delegated run carries an optional `parent_run` ID, so nesting in the folder tree is not needed. Other work items reference the same run ID. Shared invoices and subscriptions belong in a product-level cost pool until their allocation can be justified.
 
 The run's Markdown body gives a short handoff: goal, changed files and revisions, tests attempted and observed results, decisions proposed, open questions, and next owner. It does not retain a raw transcript, secrets, private reasoning, or copied user data. Exact prompts or tool traces are retained only when a product has a justified, access-controlled evidence need and a retention period.
 
 ## Attribution and accounting
 
-At run start, name a primary work item or mark the run **Unallocated** with a reason. If a run legitimately spans work items, record allocation shares and a basis; the shares must total 100%. Initiative totals roll up from child work items without adding the same run again. Attribution can be corrected later through a reviewed Git change, preserving the earlier version in history.
+At run start, name a primary work item or mark the run **Unallocated** with a reason. A run may link other work it contributed to. Each usage or shared-cost observation stores the actual accounting split as `allocations` with work IDs (or `unallocated`), integer `basis_points`, and an allocation basis. The points must total 10,000. This gives the money one home even when a run spans several items. Initiative totals roll up from child work items without adding the same observation again. Attribution can be corrected later through a reviewed Git change, preserving the earlier version in history.
 
 Usage observations record native metering units such as tokens, minutes, or compute time. Monetary amounts are separate facts. Use these states:
 

@@ -1,7 +1,8 @@
 # <Outcome-oriented title>
 
 **ID or tracker URL:** <stable link>
-**Status:** Proposed / Ready / In progress / In review / On staging / Released / Observed / Done
+**Kind:** Initiative / Feature / Bug / Task / Investigation
+**Status:** <state from the applicable route in SYSTEM.md; Done is the terminal state>
 **Owner:** <name>
 **Risk:** Low / Normal / High
 **Related decision or incident:** <link or none>

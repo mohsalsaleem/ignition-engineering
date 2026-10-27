@@ -16,7 +16,7 @@ Put the fast check, full check, build, and migration/config check in the product
 
 ## Step 4 — pilot one change
 
-Take a normal-risk change through Ready → In progress → In review → On staging → Released → Observed. Fill the work item, review, and release templates with actual evidence. Check that a different person, or a separate deliberate review pass for a solo operator, can understand the decision and reproduce the verification.
+Take a normal-risk deployed change through Ready → In progress → In review → On staging → Released → Observed → Done. Fill the work item, review, and release templates with actual evidence. Investigations, incidents, and work without a runtime change use their routes in [SYSTEM.md](SYSTEM.md). Check that a different person, or a separate deliberate review pass for a solo operator, can understand the decision and reproduce the verification.
 
 ## Step 5 — close the loop
 

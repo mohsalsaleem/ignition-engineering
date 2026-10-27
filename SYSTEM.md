@@ -1,6 +1,8 @@
 # Operating model
 
-## One path from idea to learning
+## Routes from idea to learning
+
+Use the release path below for features, bugs, and tasks that change a running product. A step is recorded as not applicable when the work does not affect that environment; it is never claimed as passed without evidence.
 
 | State | Required evidence | Exit decision |
 | --- | --- | --- |
@@ -11,6 +13,16 @@
 | On staging | Deployed revision and real journey evidence | Safe to release? |
 | Released | Production revision, health, rollback path | Works for the intended user? |
 | Observed | Monitoring and customer feedback | Done, follow-up, or rollback? |
+| Done | Accepted outcome and links to evidence or follow-up | Closed with a reason and owner |
+
+Other kinds use shorter routes with distinct completion evidence:
+
+| Kind | Route | Completion evidence |
+| --- | --- | --- |
+| Initiative | Proposed → Ready → In progress → Observed → Done | Child work and measured outcome or documented decision to stop |
+| Investigation | Proposed → Ready → In progress → Answered → Done | Method, findings, decision, and linked follow-up work if needed |
+| Task without runtime change | Proposed → Ready → In progress → In review → Done | Deliverable and relevant review/check |
+| Incident | Detected → Containing → Recovering → Monitoring → Reviewed → Done | Impact, recovery evidence, review, and corrective work |
 
 Use one prioritized backlog. Limit active implementation work to what can be reviewed promptly; for a solo operator, start with at most two active work items. A work item is not done because code was merged.
 
@@ -37,9 +49,9 @@ The product profile may raise these gates. A hotfix may compress the sequence, b
 - The change meets the acceptance criteria and relevant tests pass on the actual revision.
 - The diff is understandable and reviewed. Config, migrations, prompts, model choices, and data changes receive the same attention as application code.
 - Documentation, observability, and operational steps are updated where behavior changed.
-- Staging verification is recorded for user-facing or operational changes.
+- Staging verification is recorded when the change affects a deployed user or operational journey.
 - Production is verified through the affected journey after deployment; health alone is insufficient.
-- The release record names the revision, result, known limitations, and rollback route.
+- A release record names the revision, result, known limitations, and rollback route for deployed changes. Investigations and non-runtime tasks instead link their findings or deliverable.
 
 ## Roles and decisions
 
