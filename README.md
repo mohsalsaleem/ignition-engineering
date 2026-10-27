@@ -14,6 +14,8 @@ The [GitHub adapter](adapters/github/README.md) is optional. A product can use a
 
 [RECORDS.md](RECORDS.md) defines where requirements, decisions, agent instructions, review comments, test results, deployment facts, and incident evidence live. It distinguishes proposals from verified observations and keeps each claim tied to its revision and environment.
 
+[DESIGN.md](DESIGN.md) is the proposed product architecture and first workbench design. Its status is **Proposed** until the owner accepts it.
+
 ## What this kit does and does not do
 
 This kit supplies shared rules and templates. Each product's `.ignition/` checkout holds its engineering records without becoming part of the application repository. The application repository remains the source of truth for code, tests, migrations, and runtime configuration. Neither application runtime nor deployment depends on the local Ignition checkout.
