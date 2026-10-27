@@ -1,10 +1,10 @@
 # Adopt this system in an existing product
 
-Adopt it one real change at a time. Do not pause product delivery to produce a large documentation set.
+Adopt it one real change at a time. Do not pause product delivery to produce a large documentation set. Follow [LAYOUT.md](LAYOUT.md): the product's `.ignite/` space is a separate Git checkout, not a tracked subdirectory of its application repository.
 
 ## Step 1 — establish the truth
 
-Inspect the current repository, backlog, checks, branch settings, environments, deployments, backups, monitoring, secrets, and incident route. Run a recent test command and inspect a recent pull request and deployment. Record what actually works in `engineering/PROJECT.md`; mark a missing control as missing.
+Inspect the current repository, backlog, checks, branch settings, environments, deployments, backups, monitoring, secrets, and incident route. Run a recent test command and inspect a recent pull request and deployment. Create a private product Ignite records repository and run `python3 scripts/attach.py --app /path/to/product --records-url <records-git-url>`. The script checks it out at `.ignite/`, excludes it from application Git, and verifies that app Git remains clean. Record what actually works in `.ignite/PROJECT.md`; mark a missing control as missing.
 
 ## Step 2 — choose one work tracker
 
