@@ -24,7 +24,13 @@ product/                        # application Git repository
 └── tests/ ...
 ```
 
-The application repository must exclude `.ignition/` from its Git status. [The attach script](scripts/attach.py) adds a local `.git/info/exclude` entry and checks the result without a tracked application change. Local build tools that scan the whole working directory may also need an exclusion. Hosted builds from the application Git repository do not contain the separate Ignition checkout.
+The application repository must exclude `.ignition/` from its Git status. [The attach script](scripts/attach.py) uses Git's resolved `info/exclude` path, including in linked worktrees, and checks the result without a tracked application change. That protects Git status only.
+
+## Build-context safety decision
+
+An attached `.ignition/` checkout sits inside the application's local filesystem. A local Docker build using the application directory as its context can send private Ignition records to the builder, and `COPY . .` can put them in an image. Therefore, a Docker-based product **must commit an effective `.dockerignore` rule for `.ignition` in the application repository before building from a local checkout**. Check every effective ignore file, including Dockerfile-specific ignore files, and verify the built context/image excludes the records. [Docker documents how build contexts and ignore files work](https://docs.docker.com/build/concepts/context/#dockerignore-files). This tracked safety change is an explicit exception to the usual goal of leaving application Git untouched. The attach script does not make Docker builds safe by itself.
+
+Other packaging, archive, sync, and deployment tools that read the working directory need the same exclusion or a source-only build context. A hosted build that checks out only the application Git repository will not contain this separate records checkout, but local build paths still require review.
 
 This isolation is deliberate: a new release note or design decision in `.ignition/` must not create an application commit or trigger an application deployment. An app PR can still link to its Ignition records, and an Ignition record must name the app revision it describes. Use the product profile to name both repositories and the owner of each.
 

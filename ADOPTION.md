@@ -4,7 +4,7 @@ Adopt it one real change at a time. Do not pause product delivery to produce a l
 
 ## Step 1 — establish the truth
 
-Inspect the current repository, backlog, checks, branch settings, environments, deployments, backups, monitoring, secrets, and incident route. Run a recent test command and inspect a recent pull request and deployment. Create a private product Ignition records repository and run `python3 scripts/attach.py --app /path/to/product --records-url <records-git-url>`. The script checks it out at `.ignition/`, excludes it from application Git, and verifies that app Git remains clean. Record what actually works in `.ignition/PROJECT.md`; mark a missing control as missing.
+Inspect the current repository, backlog, checks, branch settings, environments, deployments, backups, monitoring, secrets, and incident route. Run a recent test command and inspect a recent pull request and deployment. If the product builds Docker images from a local application directory, first commit and verify an effective `.dockerignore` exclusion for `.ignition` as required by [LAYOUT.md](LAYOUT.md). Create a private product Ignition records repository and run `python3 scripts/attach.py --app /path/to/product --records-url <records-git-url>`. The script checks it out at `.ignition/`, excludes it from application Git, and verifies that app Git remains clean. Git exclusion does not protect other local build contexts. Record what actually works in `.ignition/PROJECT.md`; mark a missing control as missing.
 
 ## Step 2 — choose one work tracker
 

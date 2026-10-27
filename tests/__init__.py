@@ -1,0 +1,1 @@
+"""Ignition kit tests."""

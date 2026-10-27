@@ -4,13 +4,19 @@ A small, product-independent way to plan, build, review, release, and operate so
 
 ## Start a product
 
-1. Read [SYSTEM.md](SYSTEM.md), create a private Git repository for the product's records, and attach it with `python3 scripts/attach.py --app /path/to/product --records-url <records-git-url>`. This checks it out at `.ignition/` and excludes it from application Git without a tracked app change. Copy [templates/PROJECT.md](templates/PROJECT.md) into it as `.ignition/PROJECT.md`. Fill every field that affects release safety and link existing product documentation instead of duplicating it.
+1. Read [SYSTEM.md](SYSTEM.md) and [LAYOUT.md](LAYOUT.md), including its local build-context safety decision. Create a private Git repository for the product's records and attach it with `python3 scripts/attach.py --app /path/to/product --records-url <records-git-url>`. This checks it out at `.ignition/` and excludes it from application Git. Docker-based products need a tracked `.dockerignore` exclusion before local builds. Copy [templates/PROJECT.md](templates/PROJECT.md) into it as `.ignition/PROJECT.md`. Fill every field that affects release safety and link existing product documentation instead of duplicating it.
 2. Put each change in a work item using [templates/WORK_ITEM.md](templates/WORK_ITEM.md). Keep it small enough to review and verify. Use [templates/DESIGN_NOTE.md](templates/DESIGN_NOTE.md) for a consequential choice, migration, new data flow, or external integration.
 3. Implement on a short-lived branch. The product profile names its test commands and branch/release route. Use [templates/PULL_REQUEST.md](templates/PULL_REQUEST.md) to show evidence and review the diff.
 4. Record staging and production evidence with [templates/RELEASE.md](templates/RELEASE.md). Treat a successful merge as a code event; a release is complete only after the production journey works and monitoring is normal.
 5. Use [templates/INCIDENT.md](templates/INCIDENT.md) after an outage, data or security event, failed release, or a near miss worth learning from. Review the backlog and operational signals weekly.
 
 The [GitHub adapter](adapters/github/README.md) is optional. A product can use another tracker or CI provider and still follow the core system. [AGENT_CONTRACT.md](AGENT_CONTRACT.md) gives AI coding agents the same evidence and review expectations.
+
+## Check the kit
+
+Run `python3 -m unittest -v` from this repository's root. The same command runs in GitHub Actions for pull requests and pushes to `main`.
+
+Pass a normal Git remote or local repository path to `--records-url`. Use SSH or a Git credential helper for private access; the attach script rejects credentials embedded in an HTTP URL.
 
 [RECORDS.md](RECORDS.md) defines where requirements, decisions, agent instructions, review comments, test results, deployment facts, and incident evidence live. It distinguishes proposals from verified observations and keeps each claim tied to its revision and environment.
 
@@ -22,7 +28,7 @@ The checklist is not a substitute for functioning CI, branch controls, backups, 
 
 ## Versioning
 
-Treat this as a versioned playbook. Change the core only when a lesson applies across products. Keep product-specific exceptions in that product's `.ignition/PROJECT.md`. Current version: `0.4.0`; revise after the first real release and incident review.
+Treat this as a versioned playbook. Change the core only when a lesson applies across products. Keep product-specific exceptions in that product's `.ignition/PROJECT.md`. Current version: `0.4.1`; revise after the first real release and incident review.
 
 ## Basis
 
