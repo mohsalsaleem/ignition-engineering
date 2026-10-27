@@ -21,7 +21,7 @@ Ignition will not initially replace a tracker, CI service, deployment platform, 
 
 ## Record model
 
-The proposed record format is one Markdown file per record with TOML frontmatter between `+++` fences. The frontmatter holds the fields Ignition must filter, validate, and link: ID, record type, status, owner, product, relevant timestamps, classification, and references. The body holds rationale, analysis, acceptance criteria, and human explanation. The product-level `PROJECT.md` uses the same format for identity and tool mappings; `AGENTS.md` holds standing agent instructions. [FORMAT.md](FORMAT.md) defines the proposed layout and an example.
+The proposed format follows the purpose of each file. Human narratives such as work items, decisions, run handoffs, evidence, releases, and incidents are Markdown; records that need indexing have a small YAML frontmatter block. Machine-only project configuration, audit events, and usage/cost observations are standalone YAML files. General notes and `AGENTS.md` can be plain Markdown. [FORMAT.md](FORMAT.md) defines the layout, examples, and validation rules. Each structured record still has a stable ID, type, provenance, links, and a versioned schema.
 
 | Type | Key relationships | Distinctive fields |
 | --- | --- | --- |
@@ -108,7 +108,7 @@ flowchart LR
 
 Adapters are optional and permission scoped. The core works from local Git and manually entered links. An adapter may fetch PR, CI, deployment, or monitoring metadata and propose an evidence update; a person or configured policy decides whether it is accepted. Credentials remain in the OS credential store or provider auth flow, never in records. In the first version adapters are read-only.
 
-Agent integration reads `.ignition/PROJECT.md`, `.ignition/AGENTS.md`, and the active work item. It can suggest or write records to the Ignition checkout and make application changes through normal Git/PR review. It records a run ID at start and a linked outcome at handoff. A completed agent run is not proof: checks and human/release decisions remain separate. Provider usage and billing adapters are read-only; they must preserve source references and uncertainty.
+Agent integration reads `.ignition/project.yaml`, `.ignition/PROJECT.md`, `.ignition/AGENTS.md`, and the active work item. It can suggest or write records to the Ignition checkout and make application changes through normal Git/PR review. It records a run ID at start and a linked outcome at handoff. A completed agent run is not proof: checks and human/release decisions remain separate. Provider usage and billing adapters are read-only; they must preserve source references and uncertainty.
 
 ## First usable version
 
