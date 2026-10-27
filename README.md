@@ -16,6 +16,8 @@ The [GitHub adapter](adapters/github/README.md) is optional. A product can use a
 
 [DESIGN.md](DESIGN.md) is the proposed product architecture and first workbench design. Its status is **Proposed** until the owner accepts it.
 
+[FORMAT.md](FORMAT.md) proposes TOML metadata beside Markdown narratives for future versioned records. The current v0.4 templates remain Markdown-only.
+
 ## What this kit does and does not do
 
 This kit supplies shared rules and templates. Each product's `.ignition/` checkout holds its engineering records without becoming part of the application repository. The application repository remains the source of truth for code, tests, migrations, and runtime configuration. Neither application runtime nor deployment depends on the local Ignition checkout.
