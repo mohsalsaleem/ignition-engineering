@@ -23,6 +23,8 @@ Ignition will not initially replace a tracker, CI service, deployment platform, 
 
 The proposed format follows the purpose of each file. Human narratives such as work items, decisions, run handoffs, evidence, releases, and incidents are Markdown; records that need indexing have a small YAML frontmatter block. Machine-only project configuration, audit events, and usage/cost observations are standalone YAML files. General notes and `AGENTS.md` can be plain Markdown. [FORMAT.md](FORMAT.md) defines the layout, examples, and validation rules. Each structured record still has a stable ID, type, provenance, links, and a versioned schema.
 
+Records are grouped by their primary owner: an initiative contains its child work; a work folder contains its design, agent runs, local evidence, and audit events; a run contains its usage observations. Releases and incidents have their own folders for evidence and decisions that belong to those events. Product-wide architecture, reusable decisions, and shared billing pools remain at the top level. Globally unique IDs and explicit links handle records that contribute to more than one work item without copying them.
+
 | Type | Key relationships | Distinctive fields |
 | --- | --- | --- |
 | Work item | Design, PR, evidence, release | Kind, size, risk, urgency, outcome, acceptance criteria, initial blast radius |
@@ -132,7 +134,7 @@ The first version is successful when a new collaborator can reconstruct one chan
 
 ## Decisions still needed
 
-- Which issue tracker is canonical for each product? `.ignition/work/` is used only when there is no tracker.
+- Which issue tracker is canonical for each product? Work folders may hold engineering dossiers with either choice, but tracker-owned priority and status must not be duplicated.
 - Which evidence needs long-term preservation, and where are restricted artifacts stored?
 - Which integrations may write, and which production actions always require a named release owner?
 - Which agent providers expose session-level usage, and how should subscription or shared costs be allocated when they do not?

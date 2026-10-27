@@ -20,21 +20,35 @@ Choose the file format by what the record needs to express. Narrative records us
 │   ├── model.yaml
 │   ├── environments/production.yaml
 │   └── flows/advance-applicant.md
-├── initiatives/INIT-0001.md
-├── work/WORK-0042.md              # only when no tracker owns the backlog
-├── design/DES-0003.md
-├── decisions/DEC-0007.md
-├── runs/RUN-0018.md               # agent session and handoff
-├── audit/EVT-0031.yaml            # consequential action or decision
-├── usage/USE-0024.yaml            # metering/cost observation
-├── evidence/EV-0021.md            # test or production observation
-├── releases/REL-0004.md
-└── incidents/INC-0002.md
+├── initiatives/INIT-0001/
+│   ├── INIT-0001.md               # initiative outcome and child work
+│   └── work/WORK-0042/
+│       ├── WORK-0042.md           # work item and acceptance criteria
+│       ├── design/DES-0003.md
+│       ├── runs/RUN-0018/
+│       │   ├── RUN-0018.md        # agent handoff
+│       │   └── usage/USE-0024.yaml
+│       ├── evidence/EV-0021.md
+│       └── audit/EVT-0031.yaml
+├── work/WORK-0099/                # work without a parent initiative
+│   └── WORK-0099.md
+├── decisions/DEC-0007.md          # product-wide decision
+├── releases/REL-0004/
+│   ├── REL-0004.md
+│   ├── evidence/EV-0022.md        # release-specific verification
+│   └── audit/EVT-0032.yaml
+├── incidents/INC-0002/            # incident owns its own evidence/actions
+│   └── INC-0002.md
+└── costs/POOL-2026-10.yaml        # shared bills and unallocated pool
 ```
+
+The folder follows the **primary owner of the record**. A work item owns its design, sessions, local evidence, and local audit events. A run owns its metering observations. An initiative groups its child work and any initiative-level research. A release or incident owns evidence specific to that event. Product-wide architecture, decisions, and shared costs stay at the top level.
+
+IDs, not paths, define relationships. Every record keeps its own globally unique ID and references its work, run, release, or incident by ID. When one item supports several work items, keep one canonical copy under a primary owner and link to it from the others. Moving a work folder does not change its ID or create a second cost or evidence record.
 
 ## Narrative example
 
-`work/WORK-0042.md` has a short frontmatter block and a normal Markdown body:
+`initiatives/INIT-0001/work/WORK-0042/WORK-0042.md` has a short frontmatter block and a normal Markdown body:
 
 ```markdown
 ---
@@ -42,6 +56,7 @@ schema_version: 1
 id: "WORK-0042"
 record_type: work_item
 product: example-app
+initiative: "INIT-0001"
 title: Export fails for an empty report
 status: ready
 owner: "person:owner"
@@ -71,7 +86,7 @@ The frontmatter owns status and links; prose explains them without keeping a sec
 
 ## Machine-only example
 
-`usage/USE-0024.yaml` can hold a provider observation without an empty Markdown body:
+`initiatives/INIT-0001/work/WORK-0042/runs/RUN-0018/usage/USE-0024.yaml` can hold a provider observation without an empty Markdown body:
 
 ```yaml
 schema_version: 1
@@ -97,7 +112,7 @@ The provider source ID prevents duplicate imports. If no reliable amount exists,
 - Use a constrained YAML 1.2 subset in both frontmatter and `.yaml` files: no custom tags, anchors, aliases, or duplicate keys. Quote timestamps and decimal money strings so parsers do not reinterpret them. Use a safe parser and versioned schemas.
 - Frontmatter starts on the first line with `---` and ends at the next line containing only `---`. Parse only that section as YAML; treat the rest as Markdown. Keep metadata small; long rationale belongs in the body.
 - IDs must match filenames. Validate required fields, enums, relationships, allocation shares, and duplicate provider metering IDs. Derive indexes from records rather than maintaining a hand-edited master index. Schema changes require a documented migration.
-- If an external tracker owns the backlog, keep work item ID and status there. Ignition stores links and supplementary design or evidence, not a duplicate work queue.
+- If an external tracker owns the backlog, a work folder may still hold its engineering dossier and child records. The tracker owns priority and workflow status; Ignition links to it and does not maintain a duplicate backlog. Without a tracker, the work record owns those fields.
 - Git history shows edits and authorship. Explicit timestamps represent the actual event, not file modification time. Git alone is not tamper-proof; formal audit needs protected access and an immutable or signed export.
 - Keep secrets, raw user files, and sensitive production data out of Ignition. Link restricted evidence with access and retention metadata. Native PR, CI, deployment, provider, and billing systems remain authoritative for their own events.
 
