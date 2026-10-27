@@ -171,15 +171,31 @@ func (d *Doc) Tasks() ([]Task, error) {
 	return out, nil
 }
 
-// Entry is one log entry.
+// Entry is one log entry. By names who acted; Agent, Model and Session say
+// which agent tool, model and session did, when an agent acted.
 type Entry struct {
-	At, Type, By, Text string
+	At, Type, By, Agent, Model, Session, Text string
 }
 
 const entrySep = " · "
 
-// ParseLog reads a log: entries are `## <time> · <type> · <actor>` headings
-// followed by text.
+func dash(s string) string {
+	if s == "" {
+		return "-"
+	}
+	return s
+}
+
+func undash(s string) string {
+	if s == "-" {
+		return ""
+	}
+	return s
+}
+
+// ParseLog reads a log. Entries are `## <time> · <type> · <by>` headings, or
+// `## <time> · <type> · <by> · <agent> · <model> · <session>` with `-` for an
+// unknown value, followed by text.
 func ParseLog(text string) ([]Entry, error) {
 	var (
 		out []Entry
@@ -188,10 +204,14 @@ func ParseLog(text string) ([]Entry, error) {
 	for i, line := range strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n") {
 		if h, ok := strings.CutPrefix(line, "## "); ok {
 			parts := strings.Split(h, entrySep)
-			if len(parts) != 3 {
-				return nil, fmt.Errorf("log line %d: want `## time · type · actor`, got %q", i+1, line)
+			if len(parts) != 3 && len(parts) != 6 {
+				return nil, fmt.Errorf("log line %d: want `## time · type · by · agent · model · session`, got %q", i+1, line)
 			}
-			out = append(out, Entry{At: parts[0], Type: parts[1], By: parts[2]})
+			e := Entry{At: parts[0], Type: parts[1], By: parts[2]}
+			if len(parts) == 6 {
+				e.Agent, e.Model, e.Session = undash(parts[3]), undash(parts[4]), undash(parts[5])
+			}
+			out = append(out, e)
 			cur = &out[len(out)-1]
 			continue
 		}
@@ -207,5 +227,9 @@ func ParseLog(text string) ([]Entry, error) {
 
 // FormatEntry renders a log entry for appending.
 func FormatEntry(e Entry) string {
-	return fmt.Sprintf("\n## %s%s%s%s%s\n\n%s\n", e.At, entrySep, e.Type, entrySep, e.By, strings.TrimSpace(e.Text))
+	head := []string{e.At, e.Type, dash(e.By)}
+	if e.Agent != "" || e.Model != "" || e.Session != "" {
+		head = append(head, dash(e.Agent), dash(e.Model), dash(e.Session))
+	}
+	return fmt.Sprintf("\n## %s\n\n%s\n", strings.Join(head, entrySep), strings.TrimSpace(e.Text))
 }

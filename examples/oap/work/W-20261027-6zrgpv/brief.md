@@ -1,12 +1,12 @@
 ---
-id: W-20261027-6yedp2
+id: W-20261027-6zrgpv
 kind: bug
 title: Install ships a local copy of a released oapd image
 stage: closed
 risk: normal
 size: small
 parent:
-created: "2026-10-27T18:03:03Z"
+created: "2026-10-27T18:20:51Z"
 ---
 # Install ships a local copy of a released oapd image
 

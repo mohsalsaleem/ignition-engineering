@@ -47,19 +47,47 @@ ignition status
 ignition check
 ```
 
-Agents start with `ignition guide`, then `ignition brief <ID>`.
+## For agents
 
-[examples/oap](examples/oap) is a real bug, the OAP v0.2.0-rc.1 install
-failure, recorded through every stage.
+Ignition ships an agent skill, [skill/ignition](skill/ignition/SKILL.md),
+written to the [Agent Skills](https://agentskills.io/specification) format.
+It teaches an agent the work model, the loop, owner checkpoints, evidence
+rules and attribution. Install it with the CLI, so the skill always matches
+the binary:
+
+```sh
+ignition skill install                    # ~/.claude/skills and ~/.agents/skills
+ignition skill install --project .        # this project only
+ignition skill install --for claude       # or --for agents; --to DIR for any other folder
+```
+
+`.claude/skills` is read by Claude Code. `.agents/skills` is the shared folder
+read by Codex, Cursor, Gemini CLI, GitHub Copilot and others. Agents without
+skill support can read the same instructions with `ignition guide`.
+
+## Attribution
+
+Every log entry and evidence record stores who acted: a name, the agent tool,
+the exact model ID, and the session.
+- The agent and session are detected where the tool exposes them; Claude Code
+  sets `AI_AGENT` and a session ID.
+- An agent can also give them with `--agent` and `--session` (or
+  `IGNITION_AGENT`, `IGNITION_SESSION`).
+- No tool exposes its model, so agents pass `--model` (or `IGNITION_MODEL`).
+  A missing model is recorded as unknown, with a warning, and never guessed.
+
+`ignition attribution [ID]` reports who built what: each person, agent and
+model, their entries, commits and sessions, and who made each owner decision.
+`ignition whoami` shows what will be recorded.
 
 ## What it does and doesn't do
 
 Ignition checks that each stage's artifact is complete before an item moves
 on. It refuses to skip a stage. It also records the owner's decision at each
 checkpoint. It doesn't yet *enforce* governance: an agent with write access
-to the records could still type an owner decision itself. Signed approvals,
-verifying evidence at its source, and gates in CI are the next phases, in
-[ROADMAP.md](ROADMAP.md).
+to the records could still type an owner decision itself, or report a
+different agent or model. Signed approvals, verifying evidence at its
+source, and gates in CI are the next phases, in [ROADMAP.md](ROADMAP.md).
 
 ## Develop
 

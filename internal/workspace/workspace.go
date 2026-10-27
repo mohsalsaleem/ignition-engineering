@@ -109,6 +109,22 @@ func (w *Workspace) NewID(prefix string) (string, error) {
 
 func (w *Workspace) stamp() string { return w.Now().UTC().Format(time.RFC3339) }
 
+// Actor is who acted: a person, or an agent working for one. Agent, Model and
+// Session are set when an agent acted; an empty value means unknown.
+type Actor struct {
+	Name    string // the person or agent's name
+	Agent   string // the agent tool, e.g. claude-code, codex, cursor, gemini-cli
+	Model   string // the exact model ID, e.g. claude-opus-5-5
+	Session string // the agent's session ID, to find its transcript
+}
+
+func (a Actor) name() string {
+	if strings.TrimSpace(a.Name) == "" {
+		return "unknown"
+	}
+	return a.Name
+}
+
 // Item is one loaded work item.
 type Item struct {
 	ID       string
@@ -136,7 +152,7 @@ func (it *Item) Facts() model.Facts {
 func (w *Workspace) itemDir(id string) string { return filepath.Join(w.Root, "work", id) }
 
 // NewItem creates a work item in its kind's first stage.
-func (w *Workspace) NewItem(kind model.Kind, title, risk, size, parent, by string) (*Item, error) {
+func (w *Workspace) NewItem(kind model.Kind, title, risk, size, parent string, by Actor) (*Item, error) {
 	if strings.TrimSpace(title) == "" || strings.ContainsAny(title, "\r\n") {
 		return nil, errors.New("a work item needs a one-line title")
 	}
@@ -300,21 +316,18 @@ func (w *Workspace) List() ([]*Item, error) {
 	return out, nil
 }
 
-func (w *Workspace) appendEntry(it *Item, typ, by, text string) error {
+func (w *Workspace) appendEntry(it *Item, typ string, by Actor, text string) error {
 	if !slices.Contains(model.EntryTypes, typ) {
 		return fmt.Errorf("unknown log entry type %q (%s)", typ, strings.Join(model.EntryTypes, ", "))
 	}
 	if strings.TrimSpace(text) == "" {
 		return errors.New("a log entry needs text")
 	}
-	if strings.TrimSpace(by) == "" {
-		by = "unknown"
-	}
 	f, err := os.OpenFile(filepath.Join(it.Dir, "log.md"), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0o644)
 	if err != nil {
 		return err
 	}
-	e := record.Entry{At: w.stamp(), Type: typ, By: by, Text: text}
+	e := record.Entry{At: w.stamp(), Type: typ, By: by.name(), Agent: by.Agent, Model: by.Model, Session: by.Session, Text: text}
 	if _, err := f.WriteString(record.FormatEntry(e)); err != nil {
 		f.Close()
 		return err
@@ -325,9 +338,12 @@ func (w *Workspace) appendEntry(it *Item, typ, by, text string) error {
 
 // Log appends an entry to a work item's log. Stage and checkpoint entries are
 // written only by Advance.
-func (w *Workspace) Log(id, typ, by, text string) error {
-	if typ == "stage" || typ == "checkpoint" {
+func (w *Workspace) Log(id, typ string, by Actor, text string) error {
+	switch typ {
+	case "stage", "checkpoint":
 		return fmt.Errorf("%s entries are written by `ignition advance`", typ)
+	case "evidence":
+		return fmt.Errorf("evidence entries are written by `ignition evidence`")
 	}
 	it, err := w.Load(id)
 	if err != nil {
@@ -338,7 +354,8 @@ func (w *Workspace) Log(id, typ, by, text string) error {
 
 // EvidenceInput is what an evidence record states.
 type EvidenceInput struct {
-	Claim, Result, Revision, Environment, Method, Observed, Limits, By string
+	Claim, Result, Revision, Environment, Method, Observed, Limits string
+	By                                                             Actor
 }
 
 // AddEvidence records evidence for a work item and returns its ID.
@@ -368,10 +385,8 @@ func (w *Workspace) AddEvidence(id string, in EvidenceInput) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if in.By == "" {
-		in.By = "unknown"
-	}
-	for k, v := range map[string]string{"claim": in.Claim, "revision": in.Revision, "environment": in.Environment, "method": in.Method, "by": in.By} {
+	for k, v := range map[string]string{"claim": in.Claim, "revision": in.Revision, "environment": in.Environment, "method": in.Method,
+		"by": in.By.name(), "agent": in.By.Agent, "model": in.By.Model, "session": in.By.Session} {
 		d.Set(k, v)
 	}
 	d.Body = strings.Replace(d.Body, "# Evidence: x", "# Evidence: "+in.Claim, 1)
@@ -381,7 +396,7 @@ func (w *Workspace) AddEvidence(id string, in EvidenceInput) (string, error) {
 	if err := writeNew(filepath.Join(it.Dir, "evidence", eid+".md"), d.String()); err != nil {
 		return "", err
 	}
-	return eid, w.appendEntry(it, "note", in.By, fmt.Sprintf("Evidence %s (%s): %s", eid, in.Result, in.Claim))
+	return eid, w.appendEntry(it, "evidence", in.By, fmt.Sprintf("%s (%s): %s", eid, in.Result, in.Claim))
 }
 
 // NewDecision creates a product-wide decision record and returns its path.
