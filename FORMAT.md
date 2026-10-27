@@ -16,6 +16,10 @@ Choose the file format by what the record needs to express. Narrative records us
 ├── project.yaml                   # IDs, tool mappings, environments, policies
 ├── PROJECT.md                     # product context and operating explanation
 ├── AGENTS.md                      # standing agent instructions
+├── architecture/                  # systems, runtimes, flows, deployments
+│   ├── model.yaml
+│   ├── environments/production.yaml
+│   └── flows/advance-applicant.md
 ├── initiatives/INIT-0001.md
 ├── work/WORK-0042.md              # only when no tracker owns the backlog
 ├── design/DES-0003.md
@@ -98,3 +102,5 @@ The provider source ID prevents duplicate imports. If no reliable amount exists,
 - Keep secrets, raw user files, and sensitive production data out of Ignition. Link restricted evidence with access and retention metadata. Native PR, CI, deployment, provider, and billing systems remain authoritative for their own events.
 
 The current v0.4 kit still has Markdown-only templates. Implementing this proposal requires schemas, a validator, template conversion, and migration for any existing product records. The attach script does not yet create or validate these formats.
+
+[ARCHITECTURE_MODEL.md](ARCHITECTURE_MODEL.md) proposes the separate architecture graph. Its YAML describes structured system relationships; its Markdown flow notes explain important journeys.

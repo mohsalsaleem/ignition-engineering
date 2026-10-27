@@ -20,6 +20,8 @@ The [GitHub adapter](adapters/github/README.md) is optional. A product can use a
 
 [AGENT_GOVERNANCE.md](AGENT_GOVERNANCE.md) proposes how Ignition will attribute agent runs, audit consequential actions, and account for development usage and cost. Automatic capture is planned, not present in v0.4.
 
+[ARCHITECTURE_MODEL.md](ARCHITECTURE_MODEL.md) proposes a product-wide architecture graph and C4 views so one work item can account for web, workers, data stores, deployments, and dependencies across repositories.
+
 ## What this kit does and does not do
 
 This kit supplies shared rules and templates. Each product's `.ignition/` checkout holds its engineering records without becoming part of the application repository. The application repository remains the source of truth for code, tests, migrations, and runtime configuration. Neither application runtime nor deployment depends on the local Ignition checkout.

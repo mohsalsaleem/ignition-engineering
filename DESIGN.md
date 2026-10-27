@@ -37,6 +37,10 @@ The proposed format follows the purpose of each file. Human narratives such as w
 
 The application commit SHA, image digest or deployment ID, environment, time, and method are required before a result can be displayed as **Verified**. A proposal, an agent inference, a test failure, and an untested claim have visibly different states. Corrections and superseding decisions remain traceable in Git history.
 
+## Product architecture and blast radius
+
+Ignition models systems, runtime parts, source repositories, deployment units, data stores, relationships, and important user journeys separately. A repository can contain web and worker applications; a product can span several repositories. [ARCHITECTURE_MODEL.md](ARCHITECTURE_MODEL.md) defines the versioned architecture graph and its links to work, tests, releases, incidents, and costs. C4 context, container, deployment, and selective dynamic views make the graph understandable; they are views of the model, not an independent source of truth.
+
 ## Classification and routing
 
 Ignition asks for four independent attributes. It may suggest values from the request and repository context, but a person confirms them before work is marked Ready.
@@ -113,10 +117,10 @@ Agent integration reads `.ignition/project.yaml`, `.ignition/PROJECT.md`, `.igni
 ## First usable version
 
 1. Attach an independent `.ignition/` checkout without changing application Git status (already implemented and tested).
-2. Add schemas and validation for Project, Work item, Decision, Evidence, Release, Incident, Agent run, Audit event, and Usage/cost records. Keep their Markdown readable without the tool.
-3. Add commands to create records, start and close an agent run, link application revisions/PRs, list work by state, report missing evidence, and show attributed versus unallocated usage. Do not run arbitrary project commands from record content.
+2. Add schemas and validation for Project, Architecture, Work item, Decision, Evidence, Release, Incident, Agent run, Audit event, and Usage/cost records. Keep their Markdown readable without the tool.
+3. Add commands to create records, start and close an agent run, link application revisions/PRs, list work by state, report missing evidence and affected architecture elements, and show attributed versus unallocated usage. Do not run arbitrary project commands from record content.
 4. Add bounded read-only GitHub and deployment adapters, then a provider usage adapter. Manual links and explicit **Unknown** cost remain supported.
-5. Pilot one real Talintr change with run attribution, evidence, cost capture, and a release/incident review before building the local workbench.
+5. Pilot one real Talintr change with a small architecture inventory, run attribution, evidence, cost capture, and a release/incident review before building the local workbench.
 
 The first version is successful when a new collaborator can reconstruct one change from its work item through agent sessions, review, production verification, and cost provenance using the links and evidence, while the application repository's status and deployments remain unaffected by Ignition-only edits.
 
