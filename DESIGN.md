@@ -97,6 +97,16 @@ The project home shows the current production revision, open work, blocked gates
 
 The first release is usable without the visual workbench. People and agents can inspect records through Git and the CLI. A future UI should improve navigation and capture, not create a parallel data store.
 
+## CLI implementation and distribution
+
+**Decision:** Build the shipped Ignition CLI in Go. The existing `scripts/attach.py` is a v0.4 bootstrap helper, not the long-term implementation language. Python was useful for proving checkout isolation quickly, but requiring Python and this repository's source tree at every product checkout would work against a standalone engineering tool.
+
+The Go CLI will bundle its templates and schemas into versioned executables. Publish one artifact per supported OS/architecture, with checksums and a `version` command; initially target macOS (arm64 and amd64), Linux (arm64 and amd64), and Windows (amd64). The core should avoid cgo and native extensions to keep cross-platform builds straightforward. No Python runtime or package installation is required for people using a released binary.
+
+The first Go CLI will still call an installed Git executable for checkout, worktree path resolution, status, and credentials. This keeps the behavior aligned with the user's Git configuration; it means the binary is self-contained for Ignition logic but does not bundle Git. Network adapters likewise use provider credentials already configured on the user's machine. A later embedded Git implementation is only justified if removing that dependency becomes a demonstrated need.
+
+Start migration with `ignition attach`, porting the Python regression cases for linked worktrees, rollback after failure, repository identity, and URL secrecy. Add `ignition validate` and ID minting next, then run/evidence/cost commands. Compare the Go command with the Python helper on the same fixture repositories before changing adoption instructions; retire the helper once parity and release builds are verified. [Go's build documentation](https://go.dev/doc/tutorial/compile-install) describes executable output, and [cgo's documentation](https://go.dev/src/cmd/cgo/doc.go) explains the cross-compilation constraint when C code is involved.
+
 ## Architecture
 
 ```mermaid
@@ -121,7 +131,7 @@ In the proposed version, agent integration reads `.ignition/project.yaml`, `.ign
 
 ## First usable version
 
-1. Attach an independent `.ignition/` checkout without changing application Git status. The basic script exists; linked-worktree and failure-path hardening is in [PR #2](https://github.com/mohsalsaleem/ignition-engineering/pull/2).
+1. Ship the Go `ignition attach` command for an independent `.ignition/` checkout without changing application Git status. The Python bootstrap exists; linked-worktree and failure-path hardening is in [PR #2](https://github.com/mohsalsaleem/ignition-engineering/pull/2) and supplies migration regression cases.
 2. Add schemas and validation for Project, Architecture, Initiative, Work item, Decision, Evidence, Release, Incident, Agent run, Audit event, and Usage/cost records. Keep their Markdown readable without the tool.
 3. Add commands to mint collision-resistant IDs, create records, start and close an agent run, link application revisions/PRs, list work by state, report missing evidence and affected architecture elements, and show attributed versus unallocated usage. Do not run arbitrary project commands from record content.
 4. Add bounded read-only GitHub and deployment adapters, then a provider usage adapter. Manual links and explicit **Unknown** cost remain supported.
