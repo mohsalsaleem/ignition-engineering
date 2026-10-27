@@ -1,61 +1,70 @@
-# Records, evidence, and source of truth
+# Records
 
-The system is a linked set of records, not one giant document or a transcript of every conversation. The current product profile is `.ignition/PROJECT.md`; the proposed next version adds `.ignition/project.yaml` for machine-readable mappings. The `.ignition/` folder is a separate Git checkout, so process records do not trigger application commits or deployments. The work-centered paths below are the proposed next-version layout in [FORMAT.md](FORMAT.md); the v0.4 attach script only clones the records repository and does not create them.
+## Where they live
 
-## What counts as a fact?
+Each product has a private records repository, checked out at
+`<app>/.ignition/` by `ignition attach`. It is excluded from the application's
+Git through `info/exclude`, so a record change never becomes an application
+commit or deployment.
 
-Label the nature of a statement before relying on it:
+```text
+.ignition/
+├── PROJECT.md              # owner, repositories, environments, commands, boundaries
+├── AGENTS.md               # product-specific rules for agents
+├── decisions/D-….md        # product-wide decisions, referenced from many items
+└── work/W-20261027-k3f9q2/ # one folder per item, of any kind
+    ├── brief.md            # kind, risk, size, stage | request, problem, outcome, criteria, result
+    ├── design.md           # created on entering design
+    ├── plan.md             # created on entering plan
+    ├── release.md          # created on entering release
+    ├── evidence/E-….md     # one record per observation
+    └── log.md              # append-only: stages, checkpoints, findings, changes, handoffs
+```
 
-- **Intent:** a requested outcome or acceptance criterion. It is not evidence that behavior exists.
-- **Proposal:** an option or analysis awaiting a decision.
-- **Decision:** an accepted choice, owner, date, reason, and supersession path.
-- **Observation:** a test or production result with revision, environment, time, method, and evidence link.
-- **Current rule:** an instruction or configuration known to be in force at a stated revision.
+The application repository stays the source of truth for code, tests,
+migrations and configuration. Records link to exact commits, pull requests,
+CI runs and deployments. They don't copy them.
 
-For example, “matching works” is too broad. “The employer comparison returned the expected result for test case X on production deployment Y at time Z” is an observation. Record its limits separately.
+If the application is built with `docker build .`, add `.ignition` to its
+`.dockerignore`. Git's exclude file doesn't apply to Docker's build context.
+`ignition attach` warns when this is missing.
 
-## Where each record lives
+## Format
 
-| Record | Canonical home | Link from | Rule |
-| --- | --- | --- | --- |
-| Initiative and child work | `.ignition/initiatives/<INIT-ID>/work/<WORK-ID>/`; standalone work in `.ignition/work/<WORK-ID>/` | PR, design, release | External tracker owns status/priority if present; folders hold engineering dossiers without a second backlog |
-| Work-specific design and analysis | The primary work folder's `design/`; product-wide topology in `.ignition/architecture/` | Work item and PR | Review changes in Git; show status and owner |
-| Architecture/product decision | Work-specific `design/` or product-wide `.ignition/decisions/` | Work item, PR, later decisions | Mark Accepted or Superseded; keep historical rationale |
-| Standing agent instructions and test/release commands | `.ignition/AGENTS.md`, `.ignition/PROJECT.md`, proposed `.ignition/project.yaml`; executable scripts stay in the app repo | Work item and agent task | Version instructions and policy; task-specific instructions belong in the work item |
-| Code, tests, migrations, runtime config, prompts | Application repository | PR and release | Identify the exact commit and built artifact |
-| Review discussion and comments | Pull request or equivalent code-review system; consequential outcome in the owning work or release `audit/` | Work item | Resolve threads; move accepted decisions into a durable design or audit event |
-| Automated test feedback | CI run and committed regression tests | PR and release | Save run URL, commit, check result; archive essential expiring artifacts |
-| Agent runs and usage | Owning work or incident `runs/<RUN-ID>/`, with usage under that run; shared charges in `.ignition/costs/` | Work, cost report | Link parent runs by ID; put allocation shares on each usage/cost observation |
-| Manual test and analysis evidence | Owning work, release, or incident `evidence/`; large/restricted files in controlled artifact storage | PR and release | Record method, result, environment, revision, time, and limits |
-| Deployment and runtime state | Deployment platform and monitoring system | Release record | Record deployment ID, image/commit, config version, time, health and real journey result |
-| Release decision and production verification | `.ignition/releases/<REL-ID>/` | Work item and incident | Append outcome and follow-up; do not silently rewrite an earlier result |
-| Incident timeline and corrective actions | `.ignition/incidents/<INC-ID>/` plus tracked follow-up items | Release and work items | Preserve facts, hypotheses, customer impact, and recovery evidence |
+Records are Markdown. Records that Ignition indexes start with a flat
+frontmatter block of `key: value` lines between `---` lines. Nested values,
+lists and anchors aren't allowed. Sections are `## ` headings. Template
+guidance sits in `<!-- -->` comments and doesn't count as content.
 
-Use native IDs and permanent links where possible. The work item is the root index for a change, but it does not duplicate every test log. A release may include several work items. The product profile lists the actual paths and tools used by that product.
+IDs are `<prefix>-<YYYYMMDD>-<6 random characters>`: W for work, E for
+evidence, D for decisions. They sort by day. Parallel agents are very unlikely
+to collide, and a new item never reuses an existing folder. Folders are named
+by ID. Items link by ID: an initiative's children name it in `parent`.
 
-## Minimal evidence envelope
+## Claims and evidence
 
-Every consequential test, release, or production claim needs:
+Label a statement before relying on it:
+- **Intent:** what is wanted (acceptance criteria). Not evidence that it
+  exists.
+- **Proposal:** an option awaiting a decision.
+- **Decision:** what was chosen, by whom, and why. A checkpoint entry in the
+  log, or a decision record.
+- **Evidence:** an observation, with its claim, result, revision, environment,
+  method, actor and time.
 
-1. **Claim and expected result:** what was checked and what success means.
-2. **Scope:** product, environment, user role, data fixture, and affected journey.
-3. **Revision:** commit SHA and, for deployed tests, image digest or deployment ID plus relevant config/flag version.
-4. **Method and actor:** command, browser steps, monitor, or reviewer; who/what ran it.
-5. **Time and result:** timestamp with timezone, pass/fail, observed output, and any uncertainty.
-6. **Evidence location and retention:** CI URL, redacted screenshot/report, or restricted artifact reference; when it expires or must be preserved.
+Every evidence record names:
+- the exact revision: commit, tag, image digest or deployment ID;
+- the environment;
+- the method: command, test or steps.
 
-Use [templates/EVIDENCE.md](templates/EVIDENCE.md) for a manual or unusual test. Routine CI need not generate one file per test: its run URL and a short PR/release summary are enough. A green health check proves health, not the affected user journey.
+Its result is pass, fail or inconclusive. A failing check is evidence too;
+record it rather than retrying until green. "Merged", "deployed" or "returns
+200" is not evidence that a user journey works. Evidence and log entries are
+appended, never edited. A correction is a new entry that says what it
+corrects.
 
-## Analysis and blast radius
+## Privacy
 
-The work item records the initial impact hypothesis. A design note expands it for high-risk work: users and roles; data and permissions; APIs and jobs; schema and migrations; integrations, prompts, models, and cost; deployment and rollback. The PR confirms what actually changed and links the tests that cover each risk. Mark unverified assumptions explicitly.
-
-Review comments stay with the reviewed diff. A comment that changes scope, trust, architecture, or a release decision becomes a short entry in the work item or decision note. That prevents an important decision from surviving only in a hidden thread.
-
-## Retention and privacy
-
-Version-control small, redacted, durable evidence. Keep secrets, private user files, raw production logs, and sensitive screenshots out of Git and issue comments. Store restricted evidence in an access-controlled location with an owner and retention rule; link to it from the record. CI artifacts can expire, so a release that needs long-term proof must preserve a redacted summary or archive before expiry. GitHub, for example, documents configurable workflow-artifact retention and a 90-day default for build logs and artifacts [here](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/download-workflow-artifacts).
-
-An agent chat is working memory, not the system of record. Before closing work, transfer accepted decisions, evidence, limitations, and follow-ups to the records above. Do not preserve every intermediate thought or copy sensitive material into a new location merely for completeness.
-
-The preference for versioning requirements, tests, configuration, release procedures, and AI instructions follows [DORA's version-control guidance](https://dora.dev/capabilities/version-control/). [NIST SSDF](https://csrc.nist.gov/projects/ssdf) also calls for tracking security requirements, risks, design decisions, and release provenance.
+Never put secrets, credentials, private user data or raw production logs in
+the records. Link to restricted evidence held in access-controlled storage,
+and state who owns it and how long it's kept.
