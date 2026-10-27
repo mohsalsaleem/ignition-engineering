@@ -1,8 +1,9 @@
 # Roadmap
 
-Ignition 0.6 is the groundwork: the work model, records, CLI and agent skill.
-Today it structures the work and records decisions. The next phases make governance
-enforced rather than advisory.
+Ignition 0.7 is the groundwork: the work model, records kept in the work
+repository, the CLI and the agent skill. Today it structures the work and
+records decisions. The next phases make governance enforced rather than
+advisory.
 
 The principle is to govern through capabilities and chokepoints, not
 instructions. An agent can ignore a document, but it can't use a credential

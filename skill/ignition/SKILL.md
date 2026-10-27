@@ -7,8 +7,10 @@ compatibility: Requires the ignition CLI and git. Works with any agent that read
 # Ignition
 
 Ignition keeps a product's engineering records: work items, designs, plans,
-evidence, releases and decisions. They live in a separate Git repository
-checked out at `<app>/.ignition/`. The `ignition` CLI moves each item through
+evidence, releases and decisions. They live in the repository being worked
+on, at `<repo>/.ignition/`, and are committed with the code they describe.
+The repository itself then knows what is happening, why, and what was
+proven, for every future agent. The `ignition` CLI moves each item through
 its stages. It refuses to advance while a stage's record is incomplete, and it
 stops when the owner must decide.
 
@@ -19,10 +21,15 @@ that a new session can continue from the records alone.
 
 1. Run `ignition version`. If the command is missing, tell the user and suggest
    `go install github.com/mohsalsaleem/ignition-engineering/cmd/ignition@latest`.
-2. Run `ignition status` from the application repository. If it reports no
-   workspace, ask the user whether to set one up. Setup means creating a
-   private records repository and running `ignition attach`. Don't create
-   repositories or records anywhere on your own.
+2. Run `ignition status` from the repository. If it reports no workspace and
+   the user asked you to work under Ignition, run `ignition init` at the
+   repository root and tell the user. It creates a tracked `.ignition/`,
+   keeps logs mergeable across branches, and keeps the records out of Docker
+   images. Commit it with your first change.
+
+   Ask first instead if the repository is public, or if the user might want
+   the records kept separately (`ignition attach`). Never create another
+   repository on your own.
 3. Read the workspace's `PROJECT.md` and `AGENTS.md`. Their rules, commands
    and boundaries apply to everything below.
 4. Identify yourself, so the records show which agent and model did the work.
@@ -71,6 +78,17 @@ initiative with child items (`--parent <ID>`).
 Then write the user's request, in their words, under `## Request` in
 `brief.md`.
 
+**For an initiative, shape the whole of it before any slice.**
+1. Shape: the problem, the outcome and how it will be measured, the
+   boundaries, and what the product already has. Read the existing code and
+   flows first.
+2. Design: the overall approach.
+3. Plan: create the child items (`ignition new feature "..." --parent <ID>`),
+   in delivery order, and list them in `plan.md`.
+
+Only then start the first child. The owner approves the shape before
+anything is designed or built.
+
 ## The loop
 
 ```text
@@ -111,6 +129,18 @@ ignition advance <ID> --owner "<their name>" --decision "<their words>"
 - If they say no or ask for changes, stay in the stage. Make the changes, then
   log the decision with `ignition log <ID> --type decision`.
 
+## Committing the records
+
+The records are part of the change. Commit `.ignition/` changes in the same
+commits and pull request as the code they describe, following the project's
+commit rules. A reviewer then sees the change and its evidence together.
+- Work on one item per branch where you can. Logs merge cleanly across
+  branches, but two branches changing the same item's stage will conflict.
+- Records written after a merge (release and observe) go in a small
+  records-only commit, or in the next pull request if the project prefers.
+- Before your session ends, commit what you recorded. Uncommitted records are
+  lost with the working copy.
+
 ## Recording as you go
 
 | When | Command |
@@ -145,8 +175,8 @@ ignition advance <ID> --owner "<their name>" --decision "<their words>"
 - Guess your model, or record yourself as another agent or person.
 - Edit frontmatter, earlier log entries or evidence to get past a check.
 - Run `ignition advance` past a stage you haven't actually done.
-- Commit or push the records repository, or the application, unless the
-  project's rules or the user say to.
+- Push, merge or release unless the project's rules or the user say to.
+  Committing the records with your work is expected (see above).
 
 ## Reference
 

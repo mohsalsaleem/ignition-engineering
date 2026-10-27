@@ -28,8 +28,8 @@ session. `ignition whoami` shows what will be recorded.
 | `ignition check [ID]` | Reports problems in the records; exits 1 if there are any |
 | `ignition attribution [ID]` | Who built what: each person, agent and model, their entries, commits and sessions; owner decisions |
 | `ignition whoami` | Shows the name, agent, model and session that will be recorded |
-| `ignition init [--product NAME]` | Creates a workspace in the current folder. The owner does this once. |
-| `ignition attach --app DIR --records-url URL` | Checks the records repository out at `DIR/.ignition`. The owner does this once. |
+| `ignition init [--product NAME]` | Creates the workspace at `<repo>/.ignition`, tracked with the code. It adds `.ignition` to `.dockerignore` when there's a Dockerfile, and warns if Git ignores the folder. Run it once per repository. |
+| `ignition attach --app DIR --records-url URL` | Alternative to `init` for public or multi-repository products: keeps records in a separate repository, checked out at `DIR/.ignition`. Only when the owner asks. |
 | `ignition skill install [--for all\|claude\|agents] [--project DIR] [--to DIR]` | Installs this skill into `~/.claude/skills` (Claude Code) and `~/.agents/skills` (Codex, Cursor, Gemini CLI, Copilot and others), or into a project's folders with `--project` |
 | `ignition guide` | Prints this skill's instructions |
 | `ignition version` | Prints the version |

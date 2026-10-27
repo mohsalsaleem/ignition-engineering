@@ -2,10 +2,10 @@
 
 ## Where they live
 
-Each product has a private records repository, checked out at
-`<app>/.ignition/` by `ignition attach`. It is excluded from the application's
-Git through `info/exclude`, so a record change never becomes an application
-commit or deployment.
+Records live in the repository being worked on, at `<repo>/.ignition/`, and
+are committed in the same commits and pull requests as the code they
+describe. Anyone who clones the repository, person or agent, gets the full
+history of what was asked, decided, built and proven.
 
 ```text
 .ignition/
@@ -25,9 +25,22 @@ The application repository stays the source of truth for code, tests,
 migrations and configuration. Records link to exact commits, pull requests,
 CI runs and deployments. They don't copy them.
 
-If the application is built with `docker build .`, add `.ignition` to its
-`.dockerignore`. Git's exclude file doesn't apply to Docker's build context.
-`ignition attach` warns when this is missing.
+Two settings keep tracked records out of the way, and `ignition init` sets
+both:
+- `.ignition/.gitattributes` merges `log.md` with Git's union driver. Two
+  branches that log on the same item keep both sides' entries instead of
+  conflicting.
+- `.ignition` goes in `.dockerignore` when there's a Dockerfile, so images
+  don't include the records.
+
+Records-only commits (for example a release record written after merge) are
+ordinary commits. If they would trigger CI or a deploy you don't want, filter
+`.ignition/**` out of those triggers.
+
+**Separate records repository.** For a public repository, or a product that
+spans several repositories, `ignition attach` checks a private records
+repository out at `<app>/.ignition/` instead. It excludes the folder from the
+application's Git, and warns when Docker would copy it.
 
 ## Format
 
