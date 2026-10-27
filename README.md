@@ -1,10 +1,10 @@
-# Ignite — Product Engineering System
+# Ignition — Product Engineering System
 
-A small, product-independent way to plan, build, review, release, and operate software. The core is deliberately independent of programming language, cloud provider, issue tracker, and AI coding tool. Each product supplies its own commands, environments, risks, and owners in `.ignite/PROJECT.md`. The product's Ignite space is a separate Git checkout; see [LAYOUT.md](LAYOUT.md).
+A small, product-independent way to plan, build, review, release, and operate software. The core is deliberately independent of programming language, cloud provider, issue tracker, and AI coding tool. Each product supplies its own commands, environments, risks, and owners in `.ignition/PROJECT.md`. The product's Ignition space is a separate Git checkout; see [LAYOUT.md](LAYOUT.md).
 
 ## Start a product
 
-1. Read [SYSTEM.md](SYSTEM.md), create a private Git repository for the product's records, and attach it with `python3 scripts/attach.py --app /path/to/product --records-url <records-git-url>`. This checks it out at `.ignite/` and excludes it from application Git without a tracked app change. Copy [templates/PROJECT.md](templates/PROJECT.md) into it as `.ignite/PROJECT.md`. Fill every field that affects release safety and link existing product documentation instead of duplicating it.
+1. Read [SYSTEM.md](SYSTEM.md), create a private Git repository for the product's records, and attach it with `python3 scripts/attach.py --app /path/to/product --records-url <records-git-url>`. This checks it out at `.ignition/` and excludes it from application Git without a tracked app change. Copy [templates/PROJECT.md](templates/PROJECT.md) into it as `.ignition/PROJECT.md`. Fill every field that affects release safety and link existing product documentation instead of duplicating it.
 2. Put each change in a work item using [templates/WORK_ITEM.md](templates/WORK_ITEM.md). Keep it small enough to review and verify. Use [templates/DESIGN_NOTE.md](templates/DESIGN_NOTE.md) for a consequential choice, migration, new data flow, or external integration.
 3. Implement on a short-lived branch. The product profile names its test commands and branch/release route. Use [templates/PULL_REQUEST.md](templates/PULL_REQUEST.md) to show evidence and review the diff.
 4. Record staging and production evidence with [templates/RELEASE.md](templates/RELEASE.md). Treat a successful merge as a code event; a release is complete only after the production journey works and monitoring is normal.
@@ -16,13 +16,13 @@ The [GitHub adapter](adapters/github/README.md) is optional. A product can use a
 
 ## What this kit does and does not do
 
-This kit supplies shared rules and templates. Each product's `.ignite/` checkout holds its engineering records without becoming part of the application repository. The application repository remains the source of truth for code, tests, migrations, and runtime configuration. Neither application runtime nor deployment depends on the local Ignite checkout.
+This kit supplies shared rules and templates. Each product's `.ignition/` checkout holds its engineering records without becoming part of the application repository. The application repository remains the source of truth for code, tests, migrations, and runtime configuration. Neither application runtime nor deployment depends on the local Ignition checkout.
 
 The checklist is not a substitute for functioning CI, branch controls, backups, monitoring, and human judgment. The first adoption task for each product is to verify those controls actually run. If a hosting plan cannot enforce a gate, record the manual check and owner in its project profile rather than claiming automated protection.
 
 ## Versioning
 
-Treat this as a versioned playbook. Change the core only when a lesson applies across products. Keep product-specific exceptions in that product's `.ignite/PROJECT.md`. Current version: `0.3.0`; revise after the first real release and incident review.
+Treat this as a versioned playbook. Change the core only when a lesson applies across products. Keep product-specific exceptions in that product's `.ignition/PROJECT.md`. Current version: `0.4.0`; revise after the first real release and incident review.
 
 ## Basis
 

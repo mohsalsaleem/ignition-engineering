@@ -2,9 +2,9 @@
 
 **Owner:** <person or team>
 **Repository and tracker:** <links>
-**System version adopted:** 0.3.0
+**System version adopted:** 0.4.0
 **Application repository:** <URL>
-**Ignite records repository:** <URL>
+**Ignition records repository:** <URL>
 **Last reviewed:** <date>
 
 ## Record locations

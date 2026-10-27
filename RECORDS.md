@@ -1,6 +1,6 @@
 # Records, evidence, and source of truth
 
-The system is a linked set of records, not one giant document or a transcript of every conversation. Each product maps these record types to its own tools in `.ignite/PROJECT.md`. Its `.ignite/` folder is a separate Git checkout, so process records do not trigger application commits or deployments.
+The system is a linked set of records, not one giant document or a transcript of every conversation. Each product maps these record types to its own tools in `.ignition/PROJECT.md`. Its `.ignition/` folder is a separate Git checkout, so process records do not trigger application commits or deployments.
 
 ## What counts as a fact?
 
@@ -18,17 +18,17 @@ For example, “matching works” is too broad. “The employer comparison retur
 
 | Record | Canonical home | Link from | Rule |
 | --- | --- | --- | --- |
-| Work item, acceptance criteria, priority | One issue tracker; `.ignite/work/` if there is no tracker | PR, design, release | One ID per change; update status, do not maintain duplicate backlogs |
-| Product requirements and design | `.ignite/design/` for new engineering records; link existing app documentation | Work item and PR | Review changes in Git; show status and owner |
-| Architecture/product decision | `.ignite/decisions/`, as a numbered decision note | Work item, PR, later decisions | Mark Accepted or Superseded; keep historical rationale |
-| Standing agent instructions and test/release commands | `.ignite/AGENTS.md`, `.ignite/PROJECT.md`; executable scripts stay in the app repo | Work item and agent task | Version both; task-specific instructions belong in the work item |
+| Work item, acceptance criteria, priority | One issue tracker; `.ignition/work/` if there is no tracker | PR, design, release | One ID per change; update status, do not maintain duplicate backlogs |
+| Product requirements and design | `.ignition/design/` for new engineering records; link existing app documentation | Work item and PR | Review changes in Git; show status and owner |
+| Architecture/product decision | `.ignition/decisions/`, as a numbered decision note | Work item, PR, later decisions | Mark Accepted or Superseded; keep historical rationale |
+| Standing agent instructions and test/release commands | `.ignition/AGENTS.md`, `.ignition/PROJECT.md`; executable scripts stay in the app repo | Work item and agent task | Version both; task-specific instructions belong in the work item |
 | Code, tests, migrations, runtime config, prompts | Application repository | PR and release | Identify the exact commit and built artifact |
 | Review discussion and comments | Pull request or equivalent code-review system | Work item | Resolve threads; move consequential accepted decisions into a durable design or work item record |
 | Automated test feedback | CI run and committed regression tests | PR and release | Save run URL, commit, check result; archive essential expiring artifacts |
-| Manual test and analysis evidence | `.ignite/evidence/`; large/restricted files in controlled artifact storage | PR and release | Record method, result, environment, revision, time, and limits |
+| Manual test and analysis evidence | `.ignition/evidence/`; large/restricted files in controlled artifact storage | PR and release | Record method, result, environment, revision, time, and limits |
 | Deployment and runtime state | Deployment platform and monitoring system | Release record | Record deployment ID, image/commit, config version, time, health and real journey result |
-| Release decision and production verification | `.ignite/releases/` | Work item and incident | Append outcome and follow-up; do not silently rewrite an earlier result |
-| Incident timeline and corrective actions | `.ignite/incidents/` plus tracked follow-up items | Release and work items | Preserve facts, hypotheses, customer impact, and recovery evidence |
+| Release decision and production verification | `.ignition/releases/` | Work item and incident | Append outcome and follow-up; do not silently rewrite an earlier result |
+| Incident timeline and corrective actions | `.ignition/incidents/` plus tracked follow-up items | Release and work items | Preserve facts, hypotheses, customer impact, and recovery evidence |
 
 Use native IDs and permanent links where possible. The work item is the root index for a change, but it does not duplicate every test log. A release may include several work items. The product profile lists the actual paths and tools used by that product.
 

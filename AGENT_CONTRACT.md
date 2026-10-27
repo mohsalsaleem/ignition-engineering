@@ -1,6 +1,6 @@
 # Contract for AI-assisted engineering
 
-Give the agent a work item and the product's `.ignite/PROJECT.md` and `.ignite/AGENTS.md` before asking it to code. The agent should:
+Give the agent a work item and the product's `.ignition/PROJECT.md` and `.ignition/AGENTS.md` before asking it to code. The agent should:
 
 1. Restate the intended outcome and inspect the affected code, tests, and operating constraints.
 2. Work in a small, reviewable branch. Avoid unrelated rewrites and keep existing user data intact.
@@ -17,4 +17,4 @@ design note, PR, evidence, or release record described in [RECORDS.md](RECORDS.m
 
 Suggested task prompt:
 
-> Work item: [link]. Product profile: `.ignite/PROJECT.md`; agent instructions: `.ignite/AGENTS.md`. Implement only the accepted slice. Run the configured checks, show the diff and evidence, and follow the product's release approval gate.
+> Work item: [link]. Product profile: `.ignition/PROJECT.md`; agent instructions: `.ignition/AGENTS.md`. Implement only the accepted slice. Run the configured checks, show the diff and evidence, and follow the product's release approval gate.

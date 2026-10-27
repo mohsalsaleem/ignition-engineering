@@ -31,10 +31,10 @@ class AttachTests(unittest.TestCase):
             self.assertEqual(attach(app, str(records)), "already attached")
             self.assertEqual(run("status", "--short", cwd=app), "")
             self.assertEqual(
-                Path(run("rev-parse", "--show-toplevel", cwd=app / ".ignite")).resolve(),
-                (app / ".ignite").resolve(),
+                Path(run("rev-parse", "--show-toplevel", cwd=app / ".ignition")).resolve(),
+                (app / ".ignition").resolve(),
             )
-            (app / ".ignite" / "PROJECT.md").write_text("# Changed\n")
+            (app / ".ignition" / "PROJECT.md").write_text("# Changed\n")
             self.assertEqual(run("status", "--short", cwd=app), "")
 
     def test_refuses_existing_non_git_folder(self):
@@ -43,7 +43,7 @@ class AttachTests(unittest.TestCase):
             app = root / "app"
             app.mkdir()
             run("init", "-b", "main", cwd=app)
-            (app / ".ignite").mkdir()
+            (app / ".ignition").mkdir()
             with self.assertRaisesRegex(ValueError, "separate Git checkout"):
                 attach(app, str(root / "records"))
 
