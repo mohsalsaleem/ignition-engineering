@@ -25,7 +25,7 @@ Every record has a stable ID, type, status, owner, product, timestamps, links, a
 
 | Type | Key relationships | Distinctive fields |
 | --- | --- | --- |
-| Work item | Design, PR, evidence, release | User outcome, acceptance criteria, risk, initial blast radius |
+| Work item | Design, PR, evidence, release | Kind, size, risk, urgency, outcome, acceptance criteria, initial blast radius |
 | Design/decision | Work item, superseding decision | Options, chosen approach, reason, data/security impact |
 | Evidence | Work item, commit, CI run, deployment | Claim, method, environment, fixture, time, result, limits, retention |
 | Review outcome | PR, work item, decision | Consequential comments, resolution, remaining concern |
@@ -33,6 +33,28 @@ Every record has a stable ID, type, status, owner, product, timestamps, links, a
 | Incident | Release, monitoring, follow-up work | Impact, timeline, cause, recovery, prevention |
 
 The application commit SHA, image digest or deployment ID, environment, time, and method are required before a result can be displayed as **Verified**. A proposal, an agent inference, a test failure, and an untested claim have visibly different states. Corrections and superseding decisions remain traceable in Git history.
+
+## Classification and routing
+
+Ignition asks for four independent attributes. It may suggest values from the request and repository context, but a person confirms them before work is marked Ready.
+
+| Attribute | Choices | What it changes |
+| --- | --- | --- |
+| **Kind** | Initiative, feature, bug, task, investigation, incident | Which questions and record template appear |
+| **Size** | Small, medium, large | Whether the work should be split; it never removes a safety check |
+| **Risk** | Low, normal, high | Design, security/data review, test, staging, and release gates |
+| **Urgency** | Normal, expedited | Order and timing; expedited work records deferred checks and follow-up |
+
+The kinds route differently:
+
+- **Initiative:** outcome, boundaries, existing capability inventory, success measure, and child slices. It does not go straight to a code PR. “Build an ATS” starts here.
+- **Feature:** new observable behavior, user journey, acceptance and failure criteria, then a normal PR and release path.
+- **Bug:** expected versus actual behavior, reproduction, impact, regression test, and verification that the failure is gone.
+- **Task:** bounded operational, documentation, refactoring, or infrastructure work with an explicit done condition and affected-system check.
+- **Investigation:** a time-boxed question, method, findings, and decision. Production changes require a follow-up feature, bug, or task.
+- **Incident:** impact and containment first, timeline and recovery evidence, then linked corrective work. A hotfix is an expedited bug or task linked to the incident, not an excuse to erase skipped checks.
+
+Risk is assessed separately from size and kind. A one-line authorization bug can be **small and high risk**; a large documentation reorganization can be **large and low risk**. High-risk work gets design and release review even when the code diff is tiny. Low-risk work still needs a clear outcome, relevant check, and review. Ignition shows only the fields and gates relevant to that combination.
 
 ## Experience
 
@@ -42,12 +64,12 @@ Ignition starts as a local command-line tool with readable Markdown records. A l
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │ IGNITION   Example App ▾    App: abc1234   Records: def5678   Sync: current │
 ├───────────────┬───────────────────────────────────────┬──────────────────────┤
-│ Work queue    │ WORK-42  Withdrawn CV access          │ Evidence & risk      │
+│ Work queue    │ WORK-42  Bug · Small · High risk       │ Evidence & risk      │
 │ Decisions     │ Outcome · Criteria · Design           │ ✓ Local tests        │
 │ Releases      │ Change · Review · Staging · Production │ ✓ Staging journey    │
 │ Incidents     │ [current stage: In review]            │ ? Production         │
 │ Search        │                                       │ Blast radius        │
-│               │ Decision and review timeline          │ Data · permissions   │
+│               │ Withdrawn CV access · review timeline  │ Data · permissions   │
 └───────────────┴───────────────────────────────────────┴──────────────────────┘
 ```
 
