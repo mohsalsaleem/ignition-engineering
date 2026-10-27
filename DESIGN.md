@@ -6,7 +6,7 @@
 
 ## Product promise
 
-Ignition helps a product owner and engineering agents answer five questions at any time: What are we building? Why this design? What changed? What evidence shows it works? What is running and how do we recover?
+Ignition helps a product owner and engineering agents answer: What are we building? Why this design? Who or what did the work? What changed and what did it cost? What evidence shows it works? What is running and how do we recover?
 
 It should make disciplined engineering easier to follow, without becoming a second application codebase or another place to paste every conversation. A record is useful only when it points to a real decision, revision, observation, or owner.
 
@@ -31,6 +31,9 @@ The proposed record format is a `record.toml` metadata file beside a `README.md`
 | Review outcome | PR, work item, decision | Consequential comments, resolution, remaining concern |
 | Release | Work items, deployments, evidence | Accepted revision, checks, approval, rollback, observation |
 | Incident | Release, monitoring, follow-up work | Impact, timeline, cause, recovery, prevention |
+| Agent run | Work item, parent run, code revision, evidence | Agent and model identity, instructions revision, scope, start/end, outputs, outcome |
+| Audit event | Run, work item, review or release | Actor, action, time, source, decision, affected revision |
+| Usage/cost observation | Run when applicable, work item, release, provider source | Units, currency, amount if known, estimate/bill status, attribution, reconciliation |
 
 The application commit SHA, image digest or deployment ID, environment, time, and method are required before a result can be displayed as **Verified**. A proposal, an agent inference, a test failure, and an untested claim have visibly different states. Corrections and superseding decisions remain traceable in Git history.
 
@@ -56,6 +59,14 @@ The kinds route differently:
 
 Risk is assessed separately from size and kind. A one-line authorization bug can be **small and high risk**; a large documentation reorganization can be **large and low risk**. High-risk work gets design and release review even when the code diff is tiny. Low-risk work still needs a clear outcome, relevant check, and review. Ignition shows only the fields and gates relevant to that combination.
 
+## Agent work, audit, and cost
+
+Agent activity is part of the engineering record, not an invisible side channel. [AGENT_GOVERNANCE.md](AGENT_GOVERNANCE.md) defines a run, consequential events, cost attribution, and governance rules. A run links its task, product, agent/provider identity, parent run when delegated, instruction and policy revisions, allowed scope, start and finish, application revisions, PRs, tests, decisions, and outcome. The run record summarizes the work; it does not copy the full chat or private reasoning.
+
+The audit trail records consequential actions and decisions: delegation, changes of scope, PR submission, review outcome, test evidence, gate exception, approval, deployment, and rollback. Each event has an actor, time, source, and affected revision. Agent self-reports are marked as claims until corroborated by Git, CI, deployment, or a human decision. Protected Git history and links to the original systems make corrections and later review possible.
+
+Usage and cost observations link to runs when applicable, or directly to work, release, or a shared pool. They can cover agent providers, CI, staging infrastructure, and other development services; human review time is optional and self-reported. Each observation names its metering source, unit, quantity, currency and amount when available, attribution rule, and whether the amount is measured, estimated, reconciled, or unknown. Sessions spanning multiple work items have explicit allocation shares; unattributed usage stays in an **Unallocated** bucket. Ignition can then roll up cost by work item, initiative, product, release, provider, or period without pretending that every provider session has a billable per-run price. Budgets and alerts guide work; spending or completing a run does not waive engineering gates.
+
 ## Experience
 
 Ignition starts as a local command-line tool with readable Markdown records. A local workbench can follow once real use confirms the record model. The workbench reads the same Git files; it has no hidden source-of-truth database.
@@ -73,7 +84,7 @@ Ignition starts as a local command-line tool with readable Markdown records. A l
 └───────────────┴───────────────────────────────────────┴──────────────────────┘
 ```
 
-The project home shows the current production revision, open work, blocked gates, recent releases and incidents, and one or two operational signals. A work-item view follows the lifecycle from outcome to observation. An evidence card always displays the exact scope and source. A release view compares intended and running revisions, shows the real journey checks and rollback route, and makes missing evidence obvious. Green is reserved for verified observations; unknown stays visibly unknown.
+The project home shows the current production revision, open work, blocked gates, recent releases and incidents, agent activity, attributed and unallocated cost, and one or two operational signals. A work-item view follows the lifecycle from outcome to observation and links the agent runs that contributed. An evidence card always displays the exact scope and source. A release view compares intended and running revisions, shows the real journey checks and rollback route, and makes missing evidence obvious. Green is reserved for verified observations; unknown stays visibly unknown.
 
 The first release is usable without the visual workbench. People and agents can inspect records through Git and the CLI. A future UI should improve navigation and capture, not create a parallel data store.
 
@@ -89,6 +100,7 @@ flowchart LR
     C -->|read checks| T[CI]
     C -->|read state| D[Deployment platform]
     C -->|read signals| M[Monitoring]
+    C -->|read usage and invoices| U[Agent and provider metering]
     R -->|links to exact revision| G
     R -->|links to runs and deployments| T
     R --> D
@@ -96,17 +108,17 @@ flowchart LR
 
 Adapters are optional and permission scoped. The core works from local Git and manually entered links. An adapter may fetch PR, CI, deployment, or monitoring metadata and propose an evidence update; a person or configured policy decides whether it is accepted. Credentials remain in the OS credential store or provider auth flow, never in records. In the first version adapters are read-only.
 
-Agent integration reads `.ignition/PROJECT.md`, `.ignition/AGENTS.md`, and the active work item. It can suggest or write records to the Ignition checkout and make application changes through normal Git/PR review. A completed agent run is not proof: checks and human/release decisions remain separate.
+Agent integration reads `.ignition/PROJECT.md`, `.ignition/AGENTS.md`, and the active work item. It can suggest or write records to the Ignition checkout and make application changes through normal Git/PR review. It records a run ID at start and a linked outcome at handoff. A completed agent run is not proof: checks and human/release decisions remain separate. Provider usage and billing adapters are read-only; they must preserve source references and uncertainty.
 
 ## First usable version
 
 1. Attach an independent `.ignition/` checkout without changing application Git status (already implemented and tested).
-2. Add schemas and validation for Project, Work item, Decision, Evidence, Release, and Incident records. Keep their Markdown readable without the tool.
-3. Add commands to create records, link application revisions/PRs, list work by state, and report missing evidence. Do not run arbitrary project commands from record content.
-4. Add a bounded read-only GitHub adapter, then a deployment adapter. Manual links remain supported.
-5. Pilot one real Talintr change and a release/incident review before building the local workbench.
+2. Add schemas and validation for Project, Work item, Decision, Evidence, Release, Incident, Agent run, Audit event, and Usage/cost records. Keep their Markdown readable without the tool.
+3. Add commands to create records, start and close an agent run, link application revisions/PRs, list work by state, report missing evidence, and show attributed versus unallocated usage. Do not run arbitrary project commands from record content.
+4. Add bounded read-only GitHub and deployment adapters, then a provider usage adapter. Manual links and explicit **Unknown** cost remain supported.
+5. Pilot one real Talintr change with run attribution, evidence, cost capture, and a release/incident review before building the local workbench.
 
-The first version is successful when a new collaborator can reconstruct one change from its work item through production verification using the links and evidence, while the application repository's status and deployments remain unaffected by Ignition-only edits.
+The first version is successful when a new collaborator can reconstruct one change from its work item through agent sessions, review, production verification, and cost provenance using the links and evidence, while the application repository's status and deployments remain unaffected by Ignition-only edits.
 
 ## Later, if the pilot proves the need
 
@@ -119,4 +131,6 @@ The first version is successful when a new collaborator can reconstruct one chan
 - Which issue tracker is canonical for each product? `.ignition/work/` is used only when there is no tracker.
 - Which evidence needs long-term preservation, and where are restricted artifacts stored?
 - Which integrations may write, and which production actions always require a named release owner?
+- Which agent providers expose session-level usage, and how should subscription or shared costs be allocated when they do not?
+- Which run details can each role see, and what retention or immutable audit export does each product require?
 - Which platform should host the first local workbench, if a CLI and Markdown are insufficient after the pilot?
