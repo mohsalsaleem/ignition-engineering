@@ -20,6 +20,10 @@
 | Staging | | | | |
 | Production | | | | |
 
+Evidence for a consequential claim should name the exact revision, environment,
+time, method, result, and a durable or controlled artifact link. Use
+`EVIDENCE.md` for a manual test that needs its own record.
+
 ## Observation
 
 Errors, latency, jobs, external-provider usage, and customer feedback checked at <times>.

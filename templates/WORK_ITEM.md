@@ -1,5 +1,6 @@
 # <Outcome-oriented title>
 
+**ID or tracker URL:** <stable link>
 **Status:** Proposed / Ready / In progress / In review / On staging / Released / Observed / Done
 **Owner:** <name>
 **Risk:** Low / Normal / High
@@ -28,6 +29,7 @@ Who is affected, what fails or is missing today, and what observable result will
 
 ## Risks and release
 
+- Initial blast radius: <affected users, roles, data, permissions, APIs, jobs, configuration, dependencies>
 - Sensitive data, security, money, provider use, migration, or compatibility: <assessment>
 - Feature flag or staged rollout: <plan or not applicable>
 - Rollback trigger and route: <plan or not applicable>

@@ -11,6 +11,10 @@ Give the agent a work item and the product's `engineering/PROJECT.md` before ask
 
 AI can help implement and review, but cannot be the sole source of truth for requirements, security authorization, real-world facts, or production acceptance. Record provenance for generated content and model decisions where the product needs it. Never put credentials, private user files, or production data in prompts, issues, or release notes unless a specific secure path is defined.
 
+Agent chat and private reasoning are temporary working context. Put accepted
+decisions, verified results, open risks, and follow-ups in the work item,
+design note, PR, evidence, or release record described in [RECORDS.md](RECORDS.md).
+
 Suggested task prompt:
 
 > Work item: [link]. Product profile: `engineering/PROJECT.md`. Implement only the accepted slice. Run the configured checks, show the diff and evidence, and stop at the product's release approval gate.

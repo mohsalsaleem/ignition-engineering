@@ -12,6 +12,8 @@ A small, product-independent way to plan, build, review, release, and operate so
 
 The [GitHub adapter](adapters/github/README.md) is optional. A product can use another tracker or CI provider and still follow the core system. [AGENT_CONTRACT.md](AGENT_CONTRACT.md) gives AI coding agents the same evidence and review expectations.
 
+[RECORDS.md](RECORDS.md) defines where requirements, decisions, agent instructions, review comments, test results, deployment facts, and incident evidence live. It distinguishes proposals from verified observations and keeps each claim tied to its revision and environment.
+
 ## What this kit does and does not do
 
 This kit supplies shared decisions, templates, and gates. The product repository remains the source of truth for its own requirements, code, tests, configuration, release records, and incidents. Copy or link the relevant templates into a product; do not make products depend on this local folder at runtime.
@@ -20,7 +22,7 @@ The checklist is not a substitute for functioning CI, branch controls, backups, 
 
 ## Versioning
 
-Treat this as a versioned playbook. Change the core only when a lesson applies across products. Keep product-specific exceptions in that product's `engineering/PROJECT.md`. Start at version `0.1.0`; revise after the first real release and incident review.
+Treat this as a versioned playbook. Change the core only when a lesson applies across products. Keep product-specific exceptions in that product's `engineering/PROJECT.md`. Current version: `0.2.0`; revise after the first real release and incident review.
 
 ## Basis
 

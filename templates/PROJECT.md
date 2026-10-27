@@ -2,8 +2,16 @@
 
 **Owner:** <person or team>
 **Repository and tracker:** <links>
-**System version adopted:** 0.1.0
+**System version adopted:** 0.2.0
 **Last reviewed:** <date>
+
+## Record locations
+
+- Work tracker and ID scheme: <link or product-repository path>
+- Requirements/design/decision notes: <paths>
+- Pull request reviews and CI runs: <systems>
+- Release and incident records: <paths>
+- Restricted evidence store, access owner, and retention: <reference; no credentials>
 
 ## Product and boundaries
 

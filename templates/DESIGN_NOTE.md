@@ -1,5 +1,6 @@
 # Design note: <decision>
 
+**Decision ID:** <stable ID or path>
 **Status:** Proposed / Accepted / Superseded
 **Owner and date:** <name, date>
 **Work item:** <link>
@@ -29,3 +30,5 @@ What was chosen, by whom, and why now?
 ## Validation and revisit trigger
 
 What evidence will show the decision works? What event would cause reconsideration?
+
+**Decision evidence and supersedes/superseded-by links:** <links or none>
