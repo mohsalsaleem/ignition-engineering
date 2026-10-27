@@ -6,7 +6,7 @@ Mohamed Saleem.
 
 ## Repositories
 
-Application: github.com/mohsalsaleem/OpenAppPlatform. This folder is a worked example kept in the Ignition repository; a real product keeps its records in their own private repository.
+Application: github.com/mohsalsaleem/OpenAppPlatform. This folder is a worked example kept in the Ignition repository; a real product keeps its records in its own repository, at `.ignition/`.
 
 ## Environments
 

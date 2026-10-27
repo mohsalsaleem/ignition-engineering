@@ -77,7 +77,7 @@ func Init(root, product string) error {
 			return err
 		}
 	}
-	return nil
+	return writeNew(filepath.Join(root, ".gitattributes"), gitattributes)
 }
 
 func writeNew(path, text string) error {

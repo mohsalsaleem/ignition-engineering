@@ -6,7 +6,7 @@
 
 ## Repositories
 
-<!-- Application repositories, and this records repository. -->
+<!-- The repositories this product spans, and where its Ignition records live. -->
 
 ## Environments
 

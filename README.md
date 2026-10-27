@@ -25,14 +25,21 @@ go install github.com/mohsalsaleem/ignition-engineering/cmd/ignition@latest
 
 ## Use
 
-A product's records live in their own private Git repository, checked out at
-`<app>/.ignition/` so record changes never become application commits or
-deployments:
+A product's records live in the repository being worked on, at
+`<repo>/.ignition/`, and are committed with the code they describe. The
+repository then carries what was decided, built and proven, for every future
+person and agent. Set it up once, from anywhere in the repository:
 
 ```sh
-ignition attach --app ~/src/product --records-url git@github.com:me/product-records.git
-cd ~/src/product/.ignition && ignition init --product product   # first time only
+ignition init
 ```
+
+`init` also makes `log.md` files merge cleanly across branches, and adds
+`.ignition` to `.dockerignore` when there's a Dockerfile.
+
+For a public or multi-repository product, the records can instead live in a
+separate private repository, checked out at `.ignition/` and hidden from the
+application's Git: `ignition attach --app DIR --records-url URL`.
 
 Then, from anywhere in the application:
 

@@ -1,0 +1,2 @@
+# Logs are append-only: keep entries from both sides when branches merge.
+log.md merge=union

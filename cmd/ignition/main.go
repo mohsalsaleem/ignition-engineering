@@ -16,16 +16,18 @@ import (
 	"github.com/mohsalsaleem/ignition-engineering/skill"
 )
 
-var version = "0.6.0"
+var version = "0.7.0"
 
 const usage = `ignition: structured engineering work for people and agents.
 
 Usage: ignition <command> [arguments] [flags]
 
 Workspace
-  init [--product NAME]             create a workspace in the current folder
+  init [--product NAME]             create the workspace at <repo>/.ignition, tracked with the code
+                                    (outside a Git repository: in the current folder)
   attach --app DIR --records-url URL
-                                    check a product's records repo out at DIR/.ignition
+                                    instead keep records in a separate repository, checked out at
+                                    DIR/.ignition (for public or multi-repository products)
 Work
   new KIND "TITLE" [--risk R] [--size S] [--parent ID]
                                     KIND: initiative feature bug task investigation incident
@@ -180,19 +182,44 @@ func (c *cli) init(fs *flag.FlagSet, args []string) error {
 	if err := want(pos, 0, "no arguments"); err != nil {
 		return err
 	}
-	root := c.dir
+	// By default the records live in the repository being worked on, at
+	// <repo>/.ignition, tracked with the code. --dir puts them anywhere else.
+	root, app := c.dir, ""
 	if root == "" {
-		if root, err = os.Getwd(); err != nil {
+		wd, err := os.Getwd()
+		if err != nil {
 			return err
+		}
+		root = wd
+		if top := workspace.RepoRoot(wd); top != "" {
+			if filepath.Base(top) == ".ignition" {
+				root = top // a separate records repository, checked out by attach
+			} else {
+				root, app = filepath.Join(top, ".ignition"), top
+			}
 		}
 	}
 	if *product == "" {
 		*product = filepath.Base(root)
+		if app != "" {
+			*product = filepath.Base(app)
+		}
 	}
 	if err := workspace.Init(root, *product); err != nil {
 		return err
 	}
-	fmt.Fprintf(c.out, "Created an Ignition workspace in %s. Fill in PROJECT.md, then `ignition new`.\n", root)
+	fmt.Fprintf(c.out, "Created an Ignition workspace in %s.\n", root)
+	if app != "" {
+		notes, err := workspace.PrepareRepo(app)
+		for _, n := range notes {
+			fmt.Fprintln(c.out, n)
+		}
+		if err != nil {
+			return err
+		}
+		fmt.Fprintln(c.out, "The records are part of this repository: commit .ignition/ with the changes it describes.")
+	}
+	fmt.Fprintln(c.out, "Fill in PROJECT.md, then `ignition new`.")
 	return nil
 }
 
