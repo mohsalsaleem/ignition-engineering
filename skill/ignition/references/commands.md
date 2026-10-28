@@ -20,7 +20,7 @@ session. `ignition whoami` shows what will be recorded.
 | --- | --- |
 | `ignition status` | Lists every item: ID, kind, risk, stage, what it waits on, title |
 | `ignition brief ID` | Shows the stage and route, problems, what the stage still needs, the owner checkpoint, files and recent log |
-| `ignition new KIND "TITLE" --risk R --size S [--parent ID]` | Creates an item in its first stage |
+| `ignition new KIND "TITLE" --risk R --size S [--parent ID]` | Creates an item in its first stage. A child (`--parent`) can only be created once the initiative's solution design is done |
 | `ignition advance ID [--owner NAME --decision "TEXT"]` | Moves to the next stage, creating its record file. The owner flags record a checkpoint decision. |
 | `ignition log ID --type TYPE "TEXT"` | Appends to the log. TYPE is one of note, finding, decision, change, handoff, scope. |
 | `ignition evidence ID --claim C --result R --revision V --environment E --method M [--observed O] [--limits L]` | Records evidence; R is one of pass, fail, inconclusive |

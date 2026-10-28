@@ -20,9 +20,10 @@ How the route adapts:
 - A **low-risk feature** skips design.
 - An item whose brief says `release: none` skips release, because nothing
   ships to users.
-- An **initiative** never goes straight to code. Its plan becomes child items
-  (`ignition new ... --parent <ID>`). It can't leave *deliver* until every
-  child is closed.
+- An **initiative** never goes straight to code. Its design is a solution
+  design for the whole initiative. Its plan becomes child items
+  (`ignition new ... --parent <ID>`), which can only be created once that
+  design is done. It can't leave *deliver* until every child is closed.
 - An **investigation** ends in a decision. Any production change it leads to
   needs its own item.
 - An **incident** ends in follow-up bugs and tasks.
@@ -47,7 +48,7 @@ decides. An item with no risk set is treated as high.
 | --- | --- | --- |
 | intake | What is asked, and what kind of work is it? | `brief.md`: Request; title, size and risk set |
 | shape | What outcome, for whom, how will we know? | `brief.md`: Problem, Outcome, Acceptance criteria, Scope |
-| design | How, and why this way? | `design.md`: Context, Options, Decision, Impacts, Test strategy |
+| design | How, and why this way? | `design.md`: see [Design depth](#design-depth) |
 | plan | In what steps? | `plan.md`: at least one task (a task item also needs "Done when") |
 | reproduce | Can we make it fail? | `brief.md`: Expected and actual, Reproduction; evidence with result **fail** |
 | diagnose | Why does it fail? | `brief.md`: Root cause |
@@ -64,12 +65,32 @@ A section counts as filled when it has content beyond the template's
 item has already passed. Emptying an earlier artifact is reported as a
 problem, and the item can't move until it's fixed.
 
+## Design depth
+
+There is one design stage. How much it must cover depends on the kind, size
+and risk of the work, not on separate high-level and low-level design stages.
+
+| Item | `design.md` must fill |
+| --- | --- |
+| Initiative: the **solution design** | Context, Options, Decision, Architecture, Interfaces, Cross-cutting concerns, Slicing, Risks, Test strategy |
+| Feature | Context, Options, Decision, Impacts, Test strategy |
+| Feature that is medium or large, or high risk | also **Detailed design**: API and interfaces, data model and migrations, key flows, errors |
+| Feature that belongs to an initiative | also **Parent design**: what it builds on in the initiative's solution design, and what it adds |
+| Low-risk feature | no design stage |
+
+The initiative's solution design is the high-level design that all its child
+items share, so the owner approves it at normal risk as well as high. A child
+item designs only what differs from it. If a child needs to change the
+parent's design, such as an interface between slices, that is a scope change:
+the agent logs a `scope` entry and asks the owner.
+
 ## Owner checkpoints
 
 | Leaving | Low | Normal | High | Question |
 | --- | --- | --- | --- | --- |
 | shape | | owner | owner | Is this the right problem, outcome and scope? |
-| design | | | owner | Is this the right approach? |
+| design (initiative) | | owner | owner | Is this the right solution design for the whole initiative? |
+| design (feature) | | | owner | Is this the right approach? |
 | diagnose | | | owner | Is the root cause right, and should the fix go ahead? |
 | verify, into release | | owner | owner | Is the evidence enough to release to users? |
 | decision | | owner | owner | Do you accept this decision and its follow-up? |
