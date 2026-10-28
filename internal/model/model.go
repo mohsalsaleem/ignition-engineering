@@ -88,7 +88,9 @@ var routes = map[Kind][]Stage{
 type Facts struct {
 	Kind      Kind
 	Risk      Risk
+	Size      string
 	NoRelease bool // the brief says `release: none`: nothing ships to users
+	Child     bool // the item belongs to an initiative
 }
 
 func ParseKind(s string) (Kind, error) {
@@ -208,15 +210,36 @@ func sections(a Artifact, names ...string) Rule {
 	return Rule{Kind: Sections, Artifact: a, Names: names}
 }
 
-// Exit is what must be true for an item of kind k to leave stage s.
-func Exit(k Kind, s Stage) []Rule {
+// DetailedDesign reports whether a feature's design must include a detailed
+// design: interfaces, data, flows and errors. Small features that aren't high
+// risk don't need one. An unset size or risk counts as needing it.
+func DetailedDesign(f Facts) bool {
+	return f.Kind == Feature && (f.Size != "small" || f.Risk.AtLeast(High))
+}
+
+// Exit is what must be true for an item with facts f to leave stage s.
+func Exit(f Facts, s Stage) []Rule {
+	k := f.Kind
 	switch s {
 	case Intake:
 		return []Rule{sections(BriefDoc, "Request"), {Kind: Fields, Names: []string{"title", "size", "risk"}}}
 	case Shape:
 		return []Rule{sections(BriefDoc, "Problem", "Outcome", "Acceptance criteria", "Scope")}
 	case Design:
-		return []Rule{sections(DesignDoc, "Context", "Options", "Decision", "Impacts", "Test strategy")}
+		if k == Initiative {
+			// The solution design: the whole of the initiative, which its
+			// child items build on.
+			return []Rule{sections(DesignDoc, "Context", "Options", "Decision", "Architecture", "Interfaces",
+				"Cross-cutting concerns", "Slicing", "Risks", "Test strategy")}
+		}
+		names := []string{"Context", "Options", "Decision", "Impacts", "Test strategy"}
+		if f.Child {
+			names = append(names, "Parent design")
+		}
+		if DetailedDesign(f) {
+			names = append(names, "Detailed design")
+		}
+		return []Rule{sections(DesignDoc, names...)}
 	case Plan:
 		if k == Task {
 			return []Rule{sections(BriefDoc, "Done when"), {Kind: TasksListed}}
@@ -264,6 +287,8 @@ func OwnerDecides(f Facts, s Stage) (bool, string) {
 	switch {
 	case s == Shape && f.Risk.AtLeast(Normal):
 		return true, "Is this the right problem, outcome and scope?"
+	case s == Design && f.Kind == Initiative && f.Risk.AtLeast(Normal):
+		return true, "Is this the right solution design for the whole initiative?"
 	case s == Design && f.Risk.AtLeast(High):
 		return true, "Is this the right approach?"
 	case s == Diagnose && f.Risk.AtLeast(High):

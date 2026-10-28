@@ -159,11 +159,84 @@ func TestHighRiskFeatureStopsForTheOwnerTwiceBeforeBuilding(t *testing.T) {
 	for _, s := range []string{"Context", "Options", "Decision", "Impacts", "Test strategy"} {
 		fill(t, it, "design.md", s, "Written.")
 	}
+	mustFail(t, w, it.ID, nil, ErrNotReady, `fill in "Detailed design"`)
+	fill(t, it, "design.md", "Detailed design", "POST /applications/{id}/withdraw.")
 	mustFail(t, w, it.ID, nil, ErrNeedsOwner, "right approach")
 	if s := advance(t, w, it.ID, &Checkpoint{Owner: "owner", Decision: "Option B."}); s != model.Plan {
 		t.Fatalf("after design: %s", s)
 	}
 	mustFail(t, w, it.ID, nil, ErrNotReady, "list at least one task")
+}
+
+// designInitiative takes a new initiative through its solution design to plan.
+func designInitiative(t *testing.T, w *Workspace, id string) {
+	t.Helper()
+	it, _ := w.Load(id)
+	fill(t, it, "brief.md", "Request", "Hire through the product.")
+	advance(t, w, id, nil)
+	for _, s := range []string{"Problem", "Outcome", "Acceptance criteria", "Scope"} {
+		fill(t, it, "brief.md", s, "Written.")
+	}
+	advance(t, w, id, &Checkpoint{Owner: "owner", Decision: "Yes."})
+	for _, s := range []string{"Context", "Options", "Decision", "Architecture", "Interfaces",
+		"Cross-cutting concerns", "Slicing", "Risks", "Test strategy"} {
+		fill(t, it, "design.md", s, "Written.")
+	}
+	advance(t, w, id, &Checkpoint{Owner: "owner", Decision: "Approach A."})
+}
+
+func TestInitiativeHasASolutionDesignTheOwnerApproves(t *testing.T) {
+	w := newWorkspace(t)
+	it, _ := w.NewItem(model.Initiative, "Build an ATS", "normal", "large", "", agent)
+	fill(t, it, "brief.md", "Request", "Hire through the product.")
+	advance(t, w, it.ID, nil)
+	for _, s := range []string{"Problem", "Outcome", "Acceptance criteria", "Scope"} {
+		fill(t, it, "brief.md", s, "Written.")
+	}
+	advance(t, w, it.ID, &Checkpoint{Owner: "owner", Decision: "Yes."})
+	b, _ := os.ReadFile(filepath.Join(it.Dir, "design.md"))
+	if !strings.HasPrefix(string(b), "# Solution design:") {
+		t.Fatalf("design.md starts %q", strings.SplitN(string(b), "\n", 2)[0])
+	}
+	for _, s := range []string{"Context", "Options", "Decision", "Test strategy"} {
+		fill(t, it, "design.md", s, "Written.")
+	}
+	mustFail(t, w, it.ID, nil, ErrNotReady, `fill in "Architecture"`)
+	for _, s := range []string{"Architecture", "Interfaces", "Cross-cutting concerns", "Slicing", "Risks"} {
+		fill(t, it, "design.md", s, "Written.")
+	}
+	mustFail(t, w, it.ID, nil, ErrNeedsOwner, "solution design")
+}
+
+func TestChildItemsBuildOnTheParentDesign(t *testing.T) {
+	w := newWorkspace(t)
+	init, _ := w.NewItem(model.Initiative, "Build an ATS", "normal", "large", "", agent)
+	if _, err := w.NewItem(model.Feature, "Job posts", "normal", "small", init.ID, agent); err == nil || !strings.Contains(err.Error(), "solution design") {
+		t.Fatalf("created a child before the solution design: %v", err)
+	}
+	designInitiative(t, w, init.ID)
+	child, err := w.NewItem(model.Feature, "Job posts", "normal", "small", init.ID, agent)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fill(t, child, "brief.md", "Request", "Post a job.")
+	advance(t, w, child.ID, nil)
+	for _, s := range []string{"Problem", "Outcome", "Acceptance criteria", "Scope"} {
+		fill(t, child, "brief.md", s, "Written.")
+	}
+	advance(t, w, child.ID, &Checkpoint{Owner: "owner", Decision: "Yes."})
+	b, _ := os.ReadFile(filepath.Join(child.Dir, "design.md"))
+	if !strings.Contains(string(b), init.ID) {
+		t.Fatal("the child's design doesn't name its parent")
+	}
+	for _, s := range []string{"Context", "Options", "Decision", "Impacts", "Test strategy"} {
+		fill(t, child, "design.md", s, "Written.")
+	}
+	mustFail(t, w, child.ID, nil, ErrNotReady, `fill in "Parent design"`)
+	fill(t, child, "design.md", "Parent design", "Uses the Jobs component and its API.")
+	if s := advance(t, w, child.ID, nil); s != model.Plan {
+		t.Fatalf("a small normal-risk child left design for %s", s)
+	}
 }
 
 func TestInitiativeClosesOnlyWhenChildrenAreClosed(t *testing.T) {
@@ -172,6 +245,7 @@ func TestInitiativeClosesOnlyWhenChildrenAreClosed(t *testing.T) {
 	if _, err := w.NewItem(model.Task, "Child", "low", "small", "missing", agent); err == nil {
 		t.Fatal("accepted a missing parent")
 	}
+	designInitiative(t, w, init.ID)
 	child, err := w.NewItem(model.Task, "Child", "low", "small", init.ID, agent)
 	if err != nil {
 		t.Fatal(err)

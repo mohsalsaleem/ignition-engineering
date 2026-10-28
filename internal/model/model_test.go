@@ -43,6 +43,8 @@ func TestOwnerDecisions(t *testing.T) {
 		{Facts{Kind: Feature, Risk: Normal}, Shape, true},
 		{Facts{Kind: Feature, Risk: Normal}, Design, false},
 		{Facts{Kind: Feature, Risk: High}, Design, true},
+		{Facts{Kind: Initiative, Risk: Low}, Design, false},
+		{Facts{Kind: Initiative, Risk: Normal}, Design, true},
 		{Facts{Kind: Bug, Risk: Normal}, Diagnose, false},
 		{Facts{Kind: Bug, Risk: High}, Diagnose, true},
 		{Facts{Kind: Bug, Risk: Normal}, Verify, true},
@@ -60,9 +62,41 @@ func TestOwnerDecisions(t *testing.T) {
 func TestEveryStageHasExitRules(t *testing.T) {
 	for _, k := range Kinds {
 		for _, s := range Route(Facts{Kind: k}) {
-			if s != Closed && len(Exit(k, s)) == 0 {
+			if s != Closed && len(Exit(Facts{Kind: k}, s)) == 0 {
 				t.Errorf("%s has no exit rules for %s", k, s)
 			}
+		}
+	}
+}
+
+func designSections(f Facts) []string {
+	for _, r := range Exit(f, Design) {
+		if r.Kind == Sections && r.Artifact == DesignDoc {
+			return r.Names
+		}
+	}
+	return nil
+}
+
+func TestDesignDepthFollowsSizeAndRisk(t *testing.T) {
+	cases := []struct {
+		f       Facts
+		section string
+		want    bool
+	}{
+		{Facts{Kind: Feature, Risk: Normal, Size: "small"}, "Detailed design", false},
+		{Facts{Kind: Feature, Risk: Normal, Size: "medium"}, "Detailed design", true},
+		{Facts{Kind: Feature, Risk: Normal, Size: "large"}, "Detailed design", true},
+		{Facts{Kind: Feature, Risk: High, Size: "small"}, "Detailed design", true},
+		{Facts{Kind: Feature, Risk: Normal}, "Detailed design", true},
+		{Facts{Kind: Feature, Risk: Normal, Size: "small"}, "Parent design", false},
+		{Facts{Kind: Feature, Risk: Normal, Size: "small", Child: true}, "Parent design", true},
+		{Facts{Kind: Initiative, Risk: Normal, Size: "large"}, "Architecture", true},
+		{Facts{Kind: Initiative, Risk: Normal, Size: "large"}, "Detailed design", false},
+	}
+	for _, c := range cases {
+		if got := slices.Contains(designSections(c.f), c.section); got != c.want {
+			t.Errorf("%+v requires %q = %v, want %v", c.f, c.section, got, c.want)
 		}
 	}
 }

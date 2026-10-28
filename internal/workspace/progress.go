@@ -16,7 +16,7 @@ import (
 // Unmet lists what keeps the item from meeting a stage's exit rules.
 func (it *Item) Unmet(s model.Stage) []string {
 	var out []string
-	for _, r := range model.Exit(it.Kind(), s) {
+	for _, r := range model.Exit(it.Facts(), s) {
 		out = append(out, it.unmet(r)...)
 	}
 	return out
@@ -211,7 +211,7 @@ func (w *Workspace) Advance(id string, cp *Checkpoint, by Actor) (model.Stage, e
 	}
 	if a := model.Opens(next); a != "" {
 		if _, ok := it.Docs[a]; !ok {
-			text, err := templates.Render(string(a), map[string]string{"ID": id, "Title": it.Title()})
+			text, err := templates.Render(templates.Name(a, it.Kind()), map[string]string{"ID": id, "Title": it.Title(), "Parent": it.Brief.Get("parent")})
 			if err != nil {
 				return "", err
 			}

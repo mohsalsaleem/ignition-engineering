@@ -14,7 +14,7 @@ history of what was asked, decided, built and proven.
 ├── decisions/D-….md        # product-wide decisions, referenced from many items
 └── work/W-20261027-k3f9q2/ # one folder per item, of any kind
     ├── brief.md            # kind, risk, size, stage | request, problem, outcome, criteria, result
-    ├── design.md           # created on entering design
+    ├── design.md           # created on entering design; a solution design for an initiative
     ├── plan.md             # created on entering plan
     ├── release.md          # created on entering release
     ├── evidence/E-….md     # one record per observation

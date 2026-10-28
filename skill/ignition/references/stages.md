@@ -41,8 +41,11 @@ make it an initiative, or create one item per change.
 
 ## design
 
-**Record:** `design.md`: Context, Options, Decision, Impacts, Test strategy.
-**Owner decides** for high risk.
+**Record:** `design.md`. For a feature: Context, Options, Decision, Impacts,
+Test strategy. Medium and large features, and high-risk ones, also need
+Detailed design. A child of an initiative also needs Parent design. For an
+initiative, see "Solution design" below.
+**Owner decides** for high risk, and for an initiative at normal risk too.
 **Do:**
 - Read the code it touches first. Context is the real constraints: existing
   code, data, users, operations.
@@ -55,6 +58,33 @@ make it an initiative, or create one item per change.
   is none.
 - Under Test strategy, say which tests prove each criterion and each failure
   path.
+- Under Detailed design, when required: API and interfaces (signatures,
+  requests, responses, events), the data model (tables, fields, indexes,
+  migrations, backfills), key flows including failure paths, and errors (what
+  fails, what the user sees, retries). Write what a reviewer needs to judge
+  the change before it's built, not a copy of the code.
+- Under Parent design, for a child item: link the initiative's solution
+  design, name the components and interfaces this item builds on, and say what
+  it adds. Don't repeat the parent's design. If this item needs to change it,
+  log `--type scope` and stop for the owner.
+
+**Solution design (initiative).** The design of the whole initiative, which
+every child item builds on. Design the whole before any slice.
+- Context: the real constraints, and what the product already has. Read the
+  code and flows first.
+- Options and Decision: at least two real approaches to the whole solution,
+  including reuse or buy where real.
+- Architecture: the components, new and changed, what each owns, and how they
+  fit the existing system.
+- Interfaces: the contracts between components and between child items: APIs,
+  events, shared data and its owner. Children rely on these.
+- Cross-cutting concerns: security and permissions, personal data, data
+  migration, observability, performance, cost, rollback.
+- Slicing: the child items, in delivery order, and what each delivers on its
+  own. The plan stage creates them.
+- Risks: what could make the design wrong, how you'll find out early, and the
+  fallback.
+- Test strategy: the end-to-end journeys that prove the outcome across slices.
 
 ## plan
 
@@ -62,8 +92,10 @@ make it an initiative, or create one item per change.
 needs "Done when" in `brief.md`.
 **Do:** split the work into tasks, each small enough to review on its own,
 each with its own acceptance. Status is one of `todo`, `doing`, `done`,
-`dropped`. For an initiative, the tasks are child items: create them with
-`ignition new <kind> "..." --parent <ID>`, and put their IDs in the table.
+`dropped`. For an initiative, the tasks are child items, following the solution design's
+Slicing: create them with `ignition new <kind> "..." --parent <ID>`, and put
+their IDs in the table. Child items can't be created before the initiative's
+design is done.
 
 ## reproduce (bug)
 

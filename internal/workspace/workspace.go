@@ -145,7 +145,9 @@ func (it *Item) Facts() model.Facts {
 	return model.Facts{
 		Kind:      it.Kind(),
 		Risk:      model.Risk(it.Brief.Get("risk")),
+		Size:      it.Brief.Get("size"),
 		NoRelease: it.Brief.Get("release") == "none",
+		Child:     it.Brief.Get("parent") != "",
 	}
 }
 
@@ -170,6 +172,14 @@ func (w *Workspace) NewItem(kind model.Kind, title, risk, size, parent string, b
 		if p.Kind() != model.Initiative {
 			return nil, fmt.Errorf("parent %s is a %s; only an initiative has child items", parent, p.Kind())
 		}
+		// Child items build on the initiative's solution design, so they're
+		// created at its plan stage or later.
+		switch ps := p.Stage(); {
+		case ps == model.Closed:
+			return nil, fmt.Errorf("parent %s is closed", parent)
+		case !slices.Contains(model.Passed(p.Facts(), ps), model.Design):
+			return nil, fmt.Errorf("parent %s is in %s; create child items once its solution design is done (at its plan stage)", parent, ps)
+		}
 	}
 	if err := os.MkdirAll(filepath.Join(w.Root, "work"), 0o755); err != nil {
 		return nil, err
@@ -192,7 +202,7 @@ func (w *Workspace) NewItem(kind model.Kind, title, risk, size, parent string, b
 	stage := model.First(kind)
 	data := map[string]string{"ID": id, "Kind": string(kind), "Title": title, "Stage": string(stage),
 		"Risk": risk, "Size": size, "Parent": parent, "Created": w.stamp()}
-	text, err := templates.Render("brief-"+string(kind)+".md", data)
+	text, err := templates.Render(templates.Name(model.BriefDoc, kind), data)
 	if err != nil {
 		return nil, err
 	}

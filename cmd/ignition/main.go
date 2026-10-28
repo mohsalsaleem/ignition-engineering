@@ -16,7 +16,7 @@ import (
 	"github.com/mohsalsaleem/ignition-engineering/skill"
 )
 
-var version = "0.7.0"
+var version = "0.8.0"
 
 const usage = `ignition: structured engineering work for people and agents.
 

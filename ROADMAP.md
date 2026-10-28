@@ -1,6 +1,7 @@
 # Roadmap
 
-Ignition 0.7 is the groundwork: the work model, records kept in the work
+Ignition 0.8 is the groundwork: the work model (including solution designs
+for initiatives and design depth by size and risk), records kept in the work
 repository, the CLI and the agent skill. Today it structures the work and
 records decisions. The next phases make governance enforced rather than
 advisory.

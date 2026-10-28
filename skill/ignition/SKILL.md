@@ -82,12 +82,20 @@ Then write the user's request, in their words, under `## Request` in
 1. Shape: the problem, the outcome and how it will be measured, the
    boundaries, and what the product already has. Read the existing code and
    flows first.
-2. Design: the overall approach.
+2. Solution design: the approach for the whole initiative: architecture,
+   the interfaces between slices, cross-cutting concerns, how it's sliced,
+   and the risks. The owner approves it.
 3. Plan: create the child items (`ignition new feature "..." --parent <ID>`),
    in delivery order, and list them in `plan.md`.
 
-Only then start the first child. The owner approves the shape before
-anything is designed or built.
+Only then start the first child. The owner approves the shape and the
+solution design before anything is built. Each child's design builds on the
+solution design and covers only what it adds. A child that needs to change
+the solution design is a scope change: log it and ask the owner.
+
+There are no separate high-level and low-level design stages. The design
+stage asks for more as size and risk grow: medium, large and high-risk
+features also fill a Detailed design (interfaces, data, flows, errors).
 
 ## The loop
 
