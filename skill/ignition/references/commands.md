@@ -47,6 +47,7 @@ session. `ignition whoami` shows what will be recorded.
 | `no passing QA evidence on <sha>` / `criterion N has no QA evidence` | Run `ignition qa ID` and give it to a fresh QA agent. Your own evidence doesn't count at normal or high risk. |
 | `criterion N failed on <sha>` | Fix it, commit, log the `change`, and run QA again on the new revision. |
 | `the latest change entry names no commit` | Log your commit as `ignition log ID --type change "<sha> <what>"`. |
+| `architecture/data-model.md: the design changes the data model; …` | Write the agreed model into `.ignition/architecture/data-model.md` and name the item next to what it changed. If nothing changes, write "none: <why>" under Data model. |
 | `criteria: "N" isn't one of …` | Use the numbers of the brief's acceptance criteria. |
 | `log: no change entry` | Record your commit with `ignition log ID --type change`. |
 | ``stage entries are written by `ignition advance` `` (or checkpoint) | You can't log these directly. Use `advance`. |

@@ -1,8 +1,8 @@
 # Roadmap
 
 Ignition 0.9 is the groundwork: the work model (including solution designs
-for initiatives, design depth by size and risk, and verification by an
-independent QA agent), records kept in the work repository, the CLI and the
+for initiatives, design depth by size and risk, architecture docs with an
+agreed data model, and verification by an independent QA agent), records kept in the work repository, the CLI and the
 agent skill. Today it structures the work and
 records decisions. The next phases make governance enforced rather than
 advisory.

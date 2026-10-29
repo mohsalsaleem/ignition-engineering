@@ -55,6 +55,16 @@ ignition status
 ignition check
 ```
 
+## Design and architecture docs
+
+`.ignition/architecture/` holds the system as it is now: an overview of its
+containers, the agreed data model, and its important flows, with Mermaid
+diagrams that agents read as text and GitHub renders. Designs read it first,
+and update it with the change they make. The data model is agreed in design:
+a design that changes the data writes the target model into
+`architecture/data-model.md` for the owner to approve, before any migration
+is written. See [WORK_MODEL.md](WORK_MODEL.md#design-depth).
+
 ## Verification by a QA agent
 
 The agent that builds a change doesn't verify it. `ignition qa <ID>` prints

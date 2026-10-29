@@ -84,15 +84,17 @@ func TestDesignDepthFollowsSizeAndRisk(t *testing.T) {
 		section string
 		want    bool
 	}{
-		{Facts{Kind: Feature, Risk: Normal, Size: "small"}, "Detailed design", false},
-		{Facts{Kind: Feature, Risk: Normal, Size: "medium"}, "Detailed design", true},
-		{Facts{Kind: Feature, Risk: Normal, Size: "large"}, "Detailed design", true},
-		{Facts{Kind: Feature, Risk: High, Size: "small"}, "Detailed design", true},
-		{Facts{Kind: Feature, Risk: Normal}, "Detailed design", true},
+		{Facts{Kind: Feature, Risk: Normal, Size: "small"}, "Data model", false},
+		{Facts{Kind: Feature, Risk: Normal, Size: "medium"}, "Data model", true},
+		{Facts{Kind: Feature, Risk: Normal, Size: "large"}, "Data model", true},
+		{Facts{Kind: Feature, Risk: High, Size: "small"}, "Errors", true},
+		{Facts{Kind: Feature, Risk: Normal}, "Interfaces", true},
 		{Facts{Kind: Feature, Risk: Normal, Size: "small"}, "Parent design", false},
 		{Facts{Kind: Feature, Risk: Normal, Size: "small", Child: true}, "Parent design", true},
 		{Facts{Kind: Initiative, Risk: Normal, Size: "large"}, "Architecture", true},
-		{Facts{Kind: Initiative, Risk: Normal, Size: "large"}, "Detailed design", false},
+		{Facts{Kind: Initiative, Risk: Normal, Size: "large"}, "Data model", true},
+		{Facts{Kind: Initiative, Risk: Normal, Size: "large"}, "Flows", true},
+		{Facts{Kind: Initiative, Risk: Normal, Size: "large"}, "Errors", false},
 	}
 	for _, c := range cases {
 		if got := slices.Contains(designSections(c.f), c.section); got != c.want {

@@ -72,11 +72,34 @@ and risk of the work, not on separate high-level and low-level design stages.
 
 | Item | `design.md` must fill |
 | --- | --- |
-| Initiative: the **solution design** | Context, Options, Decision, Architecture, Interfaces, Cross-cutting concerns, Slicing, Risks, Test strategy |
+| Initiative: the **solution design** | Context, Options, Decision, Architecture, Interfaces, Data model, Flows, Cross-cutting concerns, Slicing, Risks, Test strategy |
 | Feature | Context, Options, Decision, Impacts, Test strategy |
-| Feature that is medium or large, or high risk | also **Detailed design**: API and interfaces, data model and migrations, key flows, errors |
+| Feature that is medium or large, or high risk | also **Interfaces**, **Data model** (with the migration), **Flows** and **Errors** |
 | Feature that belongs to an initiative | also **Parent design**: what it builds on in the initiative's solution design, and what it adds |
 | Low-risk feature | no design stage |
+
+A section where nothing changes says `none: <why>`. A design written before
+a section was required isn't re-checked for it once it has passed design.
+
+### Architecture docs and the agreed data model
+
+`.ignition/architecture/` describes the system as it is now: `overview.md`
+(context, containers, trust boundaries), `data-model.md` and `flows/` (one
+file per important journey). Designs read it first and describe their change
+against it. The work that changes the system updates it in the same branch.
+
+The data model is agreed in design, not discovered in a migration. A design
+whose Data model section describes a change writes the target model into
+`architecture/data-model.md`, naming its item, and the design stage can't
+complete until it does. The owner approves the model with the design. The
+migrations and ORM models then implement it, and stay the source of truth for
+exact types. A build that must differ updates the model and the design, and
+asks the owner if it changes what they approved.
+
+Diagrams are Mermaid, which agents read and write as text and GitHub renders:
+a `flowchart` for containers, an `erDiagram` for data, a `sequenceDiagram`
+per flow with its failure paths. They're recommended, not checked. See
+[skill/ignition/references/diagrams.md](skill/ignition/references/diagrams.md).
 
 The initiative's solution design is the high-level design that all its child
 items share, so the owner approves it at normal risk as well as high. A child

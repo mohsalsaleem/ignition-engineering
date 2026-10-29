@@ -3,7 +3,7 @@
 Work item: {{.ID}}
 
 The design of the whole initiative. Every child item builds on it, and
-designs only what differs from it.
+designs only what differs from it. Read `.ignition/architecture/` first.
 
 ## Context
 
@@ -19,11 +19,20 @@ designs only what differs from it.
 
 ## Architecture
 
-<!-- The components, new and changed, what each owns, and how they fit the existing system. A diagram in text or Mermaid helps. -->
+<!-- The components, new and changed, what each owns, and how they fit the existing system in .ignition/architecture/overview.md. A Mermaid flowchart of the containers (apps, services, workers, stores, queues) and how they connect. Update architecture/overview.md to match. -->
 
 ## Interfaces
 
 <!-- The contracts between components and between child items: APIs, events, shared data and who owns it. Child items rely on these, so changing one is a scope change. -->
+
+## Data model
+
+<!-- The entities across the whole initiative, as a Mermaid erDiagram, and which component owns each. For each: key fields, personal data, retention, invariants. Child items detail their own tables, within this model.
+Update .ignition/architecture/data-model.md to the agreed model, naming this item, so the owner approves the model with the design. Write "none: <why>" if no data changes. -->
+
+## Flows
+
+<!-- The journeys that cross components or child items, each as a Mermaid sequenceDiagram including a failure path. Add lasting ones to architecture/flows/. -->
 
 ## Cross-cutting concerns
 

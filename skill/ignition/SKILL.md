@@ -95,7 +95,16 @@ the solution design is a scope change: log it and ask the owner.
 
 There are no separate high-level and low-level design stages. The design
 stage asks for more as size and risk grow: medium, large and high-risk
-features also fill a Detailed design (interfaces, data, flows, errors).
+features also fill Interfaces, Data model, Flows and Errors.
+
+**Design against the architecture docs.** `.ignition/architecture/` holds the
+system as it is now: `overview.md`, `data-model.md` and `flows/`. Read them
+before designing, and update what your design changes in the design stage
+itself. The data model is agreed before it's built: a design that changes the
+data writes the target model into `data-model.md`, naming the item, so the
+owner approves it with the design. Draw diagrams in Mermaid: a `flowchart`
+for components, an `erDiagram` for data, and a `sequenceDiagram` per flow,
+including a failure path. See [references/diagrams.md](references/diagrams.md).
 
 ## The loop
 
@@ -222,3 +231,5 @@ commit rules. A reviewer then sees the change and its evidence together.
   what good looks like.
 - [references/commands.md](references/commands.md): every command, its flags,
   and what its errors mean.
+- [references/diagrams.md](references/diagrams.md): the architecture docs,
+  agreeing the data model, and Mermaid diagrams.

@@ -14,15 +14,20 @@ import (
 )
 
 // Unmet lists what keeps the item from meeting a stage's exit rules.
-func (it *Item) Unmet(s model.Stage) []string {
+func (it *Item) Unmet(s model.Stage) []string { return it.unmetStage(s, false) }
+
+// unmetStage lists the unmet exit rules of s. Rechecking a stage the item
+// has passed, a section that is absent isn't a problem: the record was
+// written before the section was required. An emptied one still is.
+func (it *Item) unmetStage(s model.Stage, recheck bool) []string {
 	var out []string
 	for _, r := range model.Exit(it.Facts(), s) {
-		out = append(out, it.unmet(r)...)
+		out = append(out, it.unmet(r, recheck)...)
 	}
 	return out
 }
 
-func (it *Item) unmet(r model.Rule) []string {
+func (it *Item) unmet(r model.Rule, recheck bool) []string {
 	switch r.Kind {
 	case model.Sections:
 		d := it.Docs[r.Artifact]
@@ -32,7 +37,9 @@ func (it *Item) unmet(r model.Rule) []string {
 		var out []string
 		for _, n := range r.Names {
 			if _, ok := d.Section(n); !ok {
-				out = append(out, fmt.Sprintf("%s has no %q section", r.Artifact, n))
+				if !recheck {
+					out = append(out, fmt.Sprintf("%s has no %q section", r.Artifact, n))
+				}
 			} else if !d.Filled(n) {
 				out = append(out, fmt.Sprintf("%s: fill in %q", r.Artifact, n))
 			}
@@ -59,6 +66,8 @@ func (it *Item) unmet(r model.Rule) []string {
 			}
 		}
 		return []string{fmt.Sprintf("no evidence with result %s (add it with `ignition evidence %s --result %s ...`)", r.Result, it.ID, r.Result)}
+	case model.DataModelAgreed:
+		return it.dataModelUnagreed()
 	case model.Verified:
 		return it.unverified(r.Independent)
 	case model.EvidenceAny:
@@ -152,7 +161,7 @@ func (it *Item) Check() []string {
 			// found after release is new work: a bug, not a broken record.
 			continue
 		}
-		for _, u := range it.Unmet(s) {
+		for _, u := range it.unmetStage(s, true) {
 			out = append(out, fmt.Sprintf("passed %s, but %s", s, u))
 		}
 	}
@@ -220,6 +229,11 @@ func (w *Workspace) Advance(id string, cp *Checkpoint, by Actor) (model.Stage, e
 	need, question := model.OwnerDecides(f, cur)
 	if need && (cp == nil || strings.TrimSpace(cp.Owner) == "" || strings.TrimSpace(cp.Decision) == "") {
 		return "", fmt.Errorf("%w: leaving %s needs the owner's answer to: %s\n  Ask them, then run `ignition advance %s --owner <name> --decision \"<their words>\"`", ErrNeedsOwner, cur, question, id)
+	}
+	if next == model.Design {
+		if err := EnsureArchitecture(w.Root); err != nil {
+			return "", err
+		}
 	}
 	if a := model.Opens(next); a != "" {
 		if _, ok := it.Docs[a]; !ok {

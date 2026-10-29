@@ -11,6 +11,10 @@ history of what was asked, decided, built and proven.
 .ignition/
 ├── PROJECT.md              # owner, repositories, environments, commands, boundaries
 ├── AGENTS.md               # product-specific rules for agents
+├── architecture/           # the system as it is now, updated by the work that changes it
+│   ├── overview.md         # context, containers, trust boundaries
+│   ├── data-model.md       # the agreed data model, updated in design
+│   └── flows/              # one file per important journey
 ├── decisions/D-….md        # product-wide decisions, referenced from many items
 └── work/W-20261027-k3f9q2/ # one folder per item, of any kind
     ├── brief.md            # kind, risk, size, stage | request, problem, outcome, criteria, result

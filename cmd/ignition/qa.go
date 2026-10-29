@@ -66,6 +66,10 @@ func (c *cli) qa(fs *flag.FlagSet, args []string) error {
 		{model.BriefDoc, "Expected and actual"},
 		{model.BriefDoc, "Reproduction"},
 		{model.BriefDoc, "Root cause"},
+		{model.DesignDoc, "Interfaces"},
+		{model.DesignDoc, "Data model"},
+		{model.DesignDoc, "Flows"},
+		{model.DesignDoc, "Errors"},
 		{model.DesignDoc, "Test strategy"},
 	} {
 		if text := section(it, s.doc, s.name); text != "" {
@@ -108,7 +112,9 @@ Record everything as QA: pass --by qa, --model <your exact model ID>, and
    that are missing (unit, integration, end-to-end, or driving the running
    app). Commit tests you write on their own branch, and say so in --method.
 4. Exercise the change the way a user or caller would, beyond the happy path:
-   bad input, permissions, empty and large data, concurrency, rollback.
+   bad input, permissions, empty and large data, concurrency, rollback. Test
+   every failure path in the design's Flows and Errors. If the data changed,
+   check the migrations against .ignition/architecture/data-model.md.
 5. Record every check, passing or failing, as soon as you've seen it:
 
    ignition evidence %[2]s --criteria <N[,N]> --claim "<what you checked>" \

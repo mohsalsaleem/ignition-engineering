@@ -43,12 +43,16 @@ make it an initiative, or create one item per change.
 
 **Record:** `design.md`. For a feature: Context, Options, Decision, Impacts,
 Test strategy. Medium and large features, and high-risk ones, also need
-Detailed design. A child of an initiative also needs Parent design. For an
-initiative, see "Solution design" below.
+Interfaces, Data model, Flows and Errors. A child of an initiative also needs
+Parent design. For an initiative, see "Solution design" below. A design whose
+Data model describes a change must also update
+`.ignition/architecture/data-model.md`, naming the item.
 **Owner decides** for high risk, and for an initiative at normal risk too.
 **Do:**
-- Read the code it touches first. Context is the real constraints: existing
-  code, data, users, operations.
+- Read `.ignition/architecture/` and the code it touches first. Context is
+  the real constraints: existing code, data, users, operations.
+  [diagrams.md](diagrams.md) explains the architecture docs and how to draw
+  the diagrams.
 - Give at least two real options, each with costs and failure modes.
   "Do nothing" counts if it's real.
 - Under Decision, say which option and why. A choice that affects the whole
@@ -58,11 +62,23 @@ initiative, see "Solution design" below.
   is none.
 - Under Test strategy, say which tests prove each criterion and each failure
   path.
-- Under Detailed design, when required: API and interfaces (signatures,
-  requests, responses, events), the data model (tables, fields, indexes,
-  migrations, backfills), key flows including failure paths, and errors (what
-  fails, what the user sees, retries). Write what a reviewer needs to judge
-  the change before it's built, not a copy of the code.
+- When required, the detailed design. Write what a reviewer needs to judge
+  the change before it's built, not a copy of the code. Write
+  "none: <why>" in a section where nothing changes.
+  - Interfaces: signatures, requests and responses, events, error codes, and
+    compatibility with existing callers.
+  - Data model: an `erDiagram` of the tables this adds or changes; fields,
+    keys, indexes, constraints, personal data and retention; then the
+    migration, backfill and rollback. Write the agreed model into
+    `architecture/data-model.md` too, naming this item, so the owner approves
+    the model now rather than finding it in a migration later.
+  - Flows: a `sequenceDiagram` per key flow, with at least one failure path;
+    retries, timeouts, idempotency, and where the change commits.
+  - Errors: what fails, what the user or caller sees, what's retried, and
+    what's logged or alerted.
+- If the change adds or reconnects components, or changes an important
+  journey, update `architecture/overview.md` or `architecture/flows/` in
+  this stage too.
 - Under Parent design, for a child item: link the initiative's solution
   design, name the components and interfaces this item builds on, and say what
   it adds. Don't repeat the parent's design. If this item needs to change it,
@@ -75,9 +91,16 @@ every child item builds on. Design the whole before any slice.
 - Options and Decision: at least two real approaches to the whole solution,
   including reuse or buy where real.
 - Architecture: the components, new and changed, what each owns, and how they
-  fit the existing system.
+  fit the existing system, as a `flowchart`. Update `architecture/overview.md`
+  to match.
 - Interfaces: the contracts between components and between child items: APIs,
   events, shared data and its owner. Children rely on these.
+- Data model: the entities across the initiative as an `erDiagram`, which
+  component owns each, and their personal data and invariants. Write it into
+  `architecture/data-model.md`, naming the initiative. Children detail their
+  own tables within it.
+- Flows: the journeys that cross components or child items, each a
+  `sequenceDiagram` with a failure path.
 - Cross-cutting concerns: security and permissions, personal data, data
   migration, observability, performance, cost, rollback.
 - Slicing: the child items, in delivery order, and what each delivers on its
