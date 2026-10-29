@@ -196,22 +196,48 @@ const (
 	LogEntry
 	// ChildrenClosed: the item has child items and all are closed.
 	ChildrenClosed
+	// DataModelAgreed: when design.md's Data model section describes a
+	// change, the product's architecture/data-model.md names the item, so the
+	// agreed model is approved with the design.
+	DataModelAgreed
+	// Verified: evidence on the built revision passes, every acceptance
+	// criterion passes, and nothing on that revision has failed since. With
+	// Independent, the passes must come from someone other than the builder.
+	Verified
 )
 
 type Rule struct {
-	Kind     RuleKind
-	Artifact Artifact
-	Names    []string
-	Result   string
-	Entry    string
+	Kind        RuleKind
+	Artifact    Artifact
+	Names       []string
+	Result      string
+	Entry       string
+	Independent bool
 }
+
+// CriteriaSection is the brief section whose numbered lines are an item's
+// acceptance criteria, which verify evidence must cover. Other kinds have none.
+func CriteriaSection(k Kind) string {
+	switch k {
+	case Feature:
+		return "Acceptance criteria"
+	case Task:
+		return "Done when"
+	}
+	return ""
+}
+
+// IndependentQA reports whether verifying an item needs evidence from someone
+// other than its builder: a QA agent or person. Low-risk work may verify
+// itself.
+func IndependentQA(f Facts) bool { return f.Risk.AtLeast(Normal) }
 
 func sections(a Artifact, names ...string) Rule {
 	return Rule{Kind: Sections, Artifact: a, Names: names}
 }
 
 // DetailedDesign reports whether a feature's design must include a detailed
-// design: interfaces, data, flows and errors. Small features that aren't high
+// design: the Interfaces, Data model, Flows and Errors sections. Small features that aren't high
 // risk don't need one. An unset size or risk counts as needing it.
 func DetailedDesign(f Facts) bool {
 	return f.Kind == Feature && (f.Size != "small" || f.Risk.AtLeast(High))
@@ -230,16 +256,17 @@ func Exit(f Facts, s Stage) []Rule {
 			// The solution design: the whole of the initiative, which its
 			// child items build on.
 			return []Rule{sections(DesignDoc, "Context", "Options", "Decision", "Architecture", "Interfaces",
-				"Cross-cutting concerns", "Slicing", "Risks", "Test strategy")}
+				"Data model", "Flows", "Cross-cutting concerns", "Slicing", "Risks", "Test strategy"), {Kind: DataModelAgreed}}
 		}
 		names := []string{"Context", "Options", "Decision", "Impacts", "Test strategy"}
 		if f.Child {
 			names = append(names, "Parent design")
 		}
-		if DetailedDesign(f) {
-			names = append(names, "Detailed design")
+		if !DetailedDesign(f) {
+			return []Rule{sections(DesignDoc, names...)}
 		}
-		return []Rule{sections(DesignDoc, names...)}
+		names = append(names, "Interfaces", "Data model", "Flows", "Errors")
+		return []Rule{sections(DesignDoc, names...), {Kind: DataModelAgreed}}
 	case Plan:
 		if k == Task {
 			return []Rule{sections(BriefDoc, "Done when"), {Kind: TasksListed}}
@@ -251,7 +278,7 @@ func Exit(f Facts, s Stage) []Rule {
 		}
 		return []Rule{{Kind: TasksDone}, {Kind: LogEntry, Entry: "change"}}
 	case Verify:
-		return []Rule{{Kind: EvidenceResult, Result: "pass"}}
+		return []Rule{{Kind: Verified, Independent: IndependentQA(f)}}
 	case Release:
 		return []Rule{sections(ReleaseDoc, "Revision", "Checks", "Rollback", "Production verification")}
 	case Observe:

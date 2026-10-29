@@ -95,7 +95,16 @@ the solution design is a scope change: log it and ask the owner.
 
 There are no separate high-level and low-level design stages. The design
 stage asks for more as size and risk grow: medium, large and high-risk
-features also fill a Detailed design (interfaces, data, flows, errors).
+features also fill Interfaces, Data model, Flows and Errors.
+
+**Design against the architecture docs.** `.ignition/architecture/` holds the
+system as it is now: `overview.md`, `data-model.md` and `flows/`. Read them
+before designing, and update what your design changes in the design stage
+itself. The data model is agreed before it's built: a design that changes the
+data writes the target model into `data-model.md`, naming the item, so the
+owner approves it with the design. Draw diagrams in Mermaid: a `flowchart`
+for components, an `erDiagram` for data, and a `sequenceDiagram` per flow,
+including a failure path. See [references/diagrams.md](references/diagrams.md).
 
 ## The loop
 
@@ -137,6 +146,32 @@ ignition advance <ID> --owner "<their name>" --decision "<their words>"
 - If they say no or ask for changes, stay in the stage. Make the changes, then
   log the decision with `ignition log <ID> --type decision`.
 
+## Verify with a QA agent
+
+The builder doesn't verify its own work. At normal and high risk, `verify`
+counts only evidence from someone other than whoever logged the changes: in
+practice, a QA agent you start for it. Every numbered acceptance criterion
+needs a pass on the revision the latest `change` entry names, and a newer
+failure reopens it.
+
+1. When build is done, run `ignition qa <ID>`. It prints the QA agent's whole
+   task: the revision, the criteria, the test strategy, what's still missing,
+   and how to record evidence.
+2. Start a fresh agent with that output as its prompt: a subagent, or a new
+   session. Give it no other context, so it tests what was asked rather than
+   what you meant to build. It records as `--by qa`. A subagent may share
+   your session ID, so the name is what tells it apart from you.
+3. Wait for its handoff. Don't record evidence for it, and don't argue its
+   failures away.
+4. If it found failures, fix them while the item stays in verify. Commit, log
+   the `change`, and run QA again: evidence on the old revision no longer
+   counts.
+5. When `ignition brief <ID>` shows verify complete, ask the owner (see
+   below).
+
+At low risk you may verify your own work, with the same criteria and revision
+rules.
+
 ## Committing the records
 
 The records are part of the change. Commit `.ignition/` changes in the same
@@ -157,7 +192,8 @@ commit rules. A reviewer then sees the change and its evidence together.
 | You made a choice inside the agreed scope | `ignition log <ID> --type decision "..."` |
 | You committed a change | `ignition log <ID> --type change "<sha> <what and why>"` |
 | The scope must change | `ignition log <ID> --type scope "..."`, then **stop and ask the owner** |
-| You checked something | `ignition evidence <ID> --claim ... --result pass\|fail\|inconclusive --revision ... --environment ... --method ... --observed ... --limits ...` |
+| You checked something | `ignition evidence <ID> --claim ... --criteria <N,N> --result pass\|fail\|inconclusive --revision ... --environment ... --method ... --observed ... --limits ...` |
+| Build is done and the item needs QA | `ignition qa <ID>`, given to a fresh QA agent |
 | A choice affects the whole product | `ignition decision "<title>"`, then fill in the file it creates |
 | Your session is ending | `ignition log <ID> --type handoff "changed: ... verified: ... open: ..."` |
 | Someone asks who built something | `ignition attribution <ID>` (or no ID, for every item) |
@@ -172,6 +208,8 @@ commit rules. A reviewer then sees the change and its evidence together.
 - "Merged", "deployed", "builds" or "returns 200" doesn't show that a user
   journey works. Check the journey.
 - Fill `--limits` honestly: what this evidence doesn't show.
+- Name the acceptance criteria a check covers with `--criteria`, and give
+  `--revision` the commit you actually tested.
 - Never edit earlier evidence or log entries. Add a new entry that corrects
   them.
 
@@ -180,7 +218,8 @@ commit rules. A reviewer then sees the change and its evidence together.
 - Put secrets, tokens, passwords, private keys, private user data or raw
   production logs in records or commands.
 - Answer an owner checkpoint, or record approval the owner didn't give.
-- Guess your model, or record yourself as another agent or person.
+- Guess your model, or record yourself as another agent or person. Never
+  record as `qa` for work you built.
 - Edit frontmatter, earlier log entries or evidence to get past a check.
 - Run `ignition advance` past a stage you haven't actually done.
 - Push, merge or release unless the project's rules or the user say to.
@@ -192,3 +231,5 @@ commit rules. A reviewer then sees the change and its evidence together.
   what good looks like.
 - [references/commands.md](references/commands.md): every command, its flags,
   and what its errors mean.
+- [references/diagrams.md](references/diagrams.md): the architecture docs,
+  agreeing the data model, and Mermaid diagrams.

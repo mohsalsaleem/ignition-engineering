@@ -14,6 +14,9 @@ import (
 
 var agent = Actor{Name: "claude-code", Agent: "claude-code", Model: "claude-opus-5-5", Session: "s-1"}
 
+// qaAgent verifies what agent built: the same tool in another session.
+var qaAgent = Actor{Name: "claude-code", Agent: "claude-code", Model: "claude-opus-5-5", Session: "s-2"}
+
 func newWorkspace(t *testing.T) *Workspace {
 	t.Helper()
 	root := t.TempDir()
@@ -97,6 +100,11 @@ func TestBugLifecycle(t *testing.T) {
 		Revision: "c18a6ac", Environment: "local", Method: "go test", By: agent}); err != nil {
 		t.Fatal(err)
 	}
+	mustFail(t, w, it.ID, nil, ErrNotReady, "no passing QA evidence on c18a6ac")
+	if _, err := w.AddEvidence(it.ID, EvidenceInput{Claim: "Released image is pulled", Result: "pass",
+		Revision: "c18a6ac", Environment: "local", Method: "go test", By: qaAgent}); err != nil {
+		t.Fatal(err)
+	}
 	mustFail(t, w, it.ID, nil, ErrNeedsOwner, "release to users")
 	mustFail(t, w, it.ID, &Checkpoint{Owner: "owner"}, ErrNeedsOwner, "release to users")
 	if s := advance(t, w, it.ID, &Checkpoint{Owner: "owner", Decision: "Publish rc.2."}); s != model.Release {
@@ -159,8 +167,13 @@ func TestHighRiskFeatureStopsForTheOwnerTwiceBeforeBuilding(t *testing.T) {
 	for _, s := range []string{"Context", "Options", "Decision", "Impacts", "Test strategy"} {
 		fill(t, it, "design.md", s, "Written.")
 	}
-	mustFail(t, w, it.ID, nil, ErrNotReady, `fill in "Detailed design"`)
-	fill(t, it, "design.md", "Detailed design", "POST /applications/{id}/withdraw.")
+	mustFail(t, w, it.ID, nil, ErrNotReady, `fill in "Data model"`)
+	fill(t, it, "design.md", "Interfaces", "POST /applications/{id}/withdraw.")
+	fill(t, it, "design.md", "Flows", "```mermaid\nsequenceDiagram\n    User->>API: withdraw\n```")
+	fill(t, it, "design.md", "Errors", "409 when already withdrawn.")
+	fill(t, it, "design.md", "Data model", "APPLICATION gains withdrawn_at.")
+	mustFail(t, w, it.ID, nil, ErrNotReady, "architecture/data-model.md: the design changes the data model")
+	agreeDataModel(t, w, it.ID)
 	mustFail(t, w, it.ID, nil, ErrNeedsOwner, "right approach")
 	if s := advance(t, w, it.ID, &Checkpoint{Owner: "owner", Decision: "Option B."}); s != model.Plan {
 		t.Fatalf("after design: %s", s)
@@ -179,10 +192,25 @@ func designInitiative(t *testing.T, w *Workspace, id string) {
 	}
 	advance(t, w, id, &Checkpoint{Owner: "owner", Decision: "Yes."})
 	for _, s := range []string{"Context", "Options", "Decision", "Architecture", "Interfaces",
-		"Cross-cutting concerns", "Slicing", "Risks", "Test strategy"} {
+		"Flows", "Cross-cutting concerns", "Slicing", "Risks", "Test strategy"} {
 		fill(t, it, "design.md", s, "Written.")
 	}
+	fill(t, it, "design.md", "Data model", "None: the slices design their own tables.")
 	advance(t, w, id, &Checkpoint{Owner: "owner", Decision: "Approach A."})
+}
+
+// agreeDataModel records an item's change in the product's agreed data model.
+func agreeDataModel(t *testing.T, w *Workspace, id string) {
+	t.Helper()
+	path := filepath.Join(w.Root, "architecture", "data-model.md")
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b = append(b, []byte("\n### application\n\nwithdrawn_at: when the candidate withdrew. Changed by "+id+".\n")...)
+	if err := os.WriteFile(path, b, 0o644); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestInitiativeHasASolutionDesignTheOwnerApproves(t *testing.T) {
@@ -202,10 +230,62 @@ func TestInitiativeHasASolutionDesignTheOwnerApproves(t *testing.T) {
 		fill(t, it, "design.md", s, "Written.")
 	}
 	mustFail(t, w, it.ID, nil, ErrNotReady, `fill in "Architecture"`)
-	for _, s := range []string{"Architecture", "Interfaces", "Cross-cutting concerns", "Slicing", "Risks"} {
+	for _, s := range []string{"Architecture", "Interfaces", "Data model", "Flows", "Cross-cutting concerns", "Slicing", "Risks"} {
 		fill(t, it, "design.md", s, "Written.")
 	}
+	mustFail(t, w, it.ID, nil, ErrNotReady, "architecture/data-model.md")
+	agreeDataModel(t, w, it.ID)
 	mustFail(t, w, it.ID, nil, ErrNeedsOwner, "solution design")
+}
+
+func TestArchitectureDocsExistForDesign(t *testing.T) {
+	w := newWorkspace(t)
+	for _, p := range []string{"overview.md", "data-model.md", "flows/README.md"} {
+		if _, err := os.Stat(filepath.Join(w.Root, "architecture", p)); err != nil {
+			t.Errorf("init didn't create architecture/%s", p)
+		}
+	}
+	// A workspace made before them gets them when an item enters design.
+	os.RemoveAll(filepath.Join(w.Root, "architecture"))
+	it, _ := w.NewItem(model.Feature, "Withdraw", "normal", "small", "", agent)
+	fill(t, it, "brief.md", "Request", "Candidates want to withdraw.")
+	advance(t, w, it.ID, nil)
+	for _, s := range []string{"Problem", "Outcome", "Acceptance criteria", "Scope"} {
+		fill(t, it, "brief.md", s, "Written.")
+	}
+	advance(t, w, it.ID, &Checkpoint{Owner: "owner", Decision: "Yes."})
+	if _, err := os.Stat(filepath.Join(w.Root, "architecture", "data-model.md")); err != nil {
+		t.Fatal("entering design didn't create the architecture docs")
+	}
+}
+
+// A design written before a section was required isn't a problem once
+// passed; emptying a section it has still is.
+func TestDesignsFromBeforeASectionWasRequiredStillCheck(t *testing.T) {
+	w := newWorkspace(t)
+	it, _ := w.NewItem(model.Feature, "Withdraw", "normal", "medium", "", agent)
+	fill(t, it, "brief.md", "Request", "Candidates want to withdraw.")
+	advance(t, w, it.ID, nil)
+	for _, s := range []string{"Problem", "Outcome", "Acceptance criteria", "Scope"} {
+		fill(t, it, "brief.md", s, "Written.")
+	}
+	advance(t, w, it.ID, &Checkpoint{Owner: "owner", Decision: "Yes."})
+	old := "# Design\n\n## Context\n\nX\n\n## Options\n\nX\n\n## Decision\n\nX\n\n## Detailed design\n\nX\n\n## Impacts\n\nX\n\n## Test strategy\n\nX\n"
+	design := filepath.Join(it.Dir, "design.md")
+	os.WriteFile(design, []byte(old), 0o644)
+	mustFail(t, w, it.ID, nil, ErrNotReady, `has no "Data model" section`)
+	it, _ = w.Load(it.ID)
+	it.Brief.Set("stage", "plan") // as if it had passed design under the old rules
+	os.WriteFile(filepath.Join(it.Dir, "brief.md"), []byte(it.Brief.String()), 0o644)
+	it, _ = w.Load(it.ID)
+	if probs := it.Check(); len(probs) != 0 {
+		t.Fatalf("problems = %v", probs)
+	}
+	os.WriteFile(design, []byte(strings.Replace(old, "## Impacts\n\nX", "## Impacts\n", 1)), 0o644)
+	it, _ = w.Load(it.ID)
+	if probs := it.Check(); len(probs) != 1 || !strings.Contains(probs[0], `passed design, but design.md: fill in "Impacts"`) {
+		t.Fatalf("problems = %v", probs)
+	}
 }
 
 func TestChildItemsBuildOnTheParentDesign(t *testing.T) {
@@ -254,7 +334,7 @@ func TestInitiativeClosesOnlyWhenChildrenAreClosed(t *testing.T) {
 		t.Fatal("a task accepted a child")
 	}
 	it, _ := w.Load(init.ID)
-	if u := it.unmet(model.Rule{Kind: model.ChildrenClosed}); len(u) != 1 || !strings.Contains(u[0], child.ID) {
+	if u := it.unmet(model.Rule{Kind: model.ChildrenClosed}, false); len(u) != 1 || !strings.Contains(u[0], child.ID) {
 		t.Fatalf("unmet = %v", u)
 	}
 }

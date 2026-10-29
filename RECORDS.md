@@ -11,6 +11,10 @@ history of what was asked, decided, built and proven.
 .ignition/
 ├── PROJECT.md              # owner, repositories, environments, commands, boundaries
 ├── AGENTS.md               # product-specific rules for agents
+├── architecture/           # the system as it is now, updated by the work that changes it
+│   ├── overview.md         # context, containers, trust boundaries
+│   ├── data-model.md       # the agreed data model, updated in design
+│   └── flows/              # one file per important journey
 ├── decisions/D-….md        # product-wide decisions, referenced from many items
 └── work/W-20261027-k3f9q2/ # one folder per item, of any kind
     ├── brief.md            # kind, risk, size, stage | request, problem, outcome, criteria, result
@@ -66,9 +70,12 @@ Label a statement before relying on it:
   method, actor and time.
 
 Every evidence record names:
-- the exact revision: commit, tag, image digest or deployment ID;
+- the exact revision: commit, tag, image digest or deployment ID. Verify
+  evidence names the commit first, as `a1b2c3d` or `a1b2c3d (staging)`;
 - the environment;
-- the method: command, test or steps.
+- the method: command, test or steps;
+- optionally, `criteria`: the numbers of the acceptance criteria it covers,
+  such as `1,3`. Verify needs a pass for each one.
 
 Its result is pass, fail or inconclusive. A failing check is evidence too;
 record it rather than retrying until green. "Merged", "deployed" or "returns

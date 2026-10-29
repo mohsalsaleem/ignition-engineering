@@ -16,4 +16,4 @@ created: {{.Created}}
 
 ## Done when
 
-<!-- The explicit condition that makes this task done, and how it is checked. -->
+<!-- The explicit conditions that make this task done, and how each is checked. Number them (1. 2. ...): verify needs evidence for each. -->

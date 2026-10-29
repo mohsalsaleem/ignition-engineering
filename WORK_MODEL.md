@@ -53,7 +53,7 @@ decides. An item with no risk set is treated as high.
 | reproduce | Can we make it fail? | `brief.md`: Expected and actual, Reproduction; evidence with result **fail** |
 | diagnose | Why does it fail? | `brief.md`: Root cause |
 | build | Is the change made? | every plan task done or dropped; a `change` log entry naming the commit |
-| verify | Does it work? | evidence with result **pass** |
+| verify | Does it work? | QA evidence on the built revision: every acceptance criterion passes, nothing failing. See [Verification](#verification) |
 | release | Is it running for users, and can we undo it? | `release.md`: Revision, Checks, Rollback, Production verification |
 | observe | Did the outcome happen? | `brief.md`: Result |
 | deliver | Are the child items done? | every child item closed |
@@ -72,17 +72,70 @@ and risk of the work, not on separate high-level and low-level design stages.
 
 | Item | `design.md` must fill |
 | --- | --- |
-| Initiative: the **solution design** | Context, Options, Decision, Architecture, Interfaces, Cross-cutting concerns, Slicing, Risks, Test strategy |
+| Initiative: the **solution design** | Context, Options, Decision, Architecture, Interfaces, Data model, Flows, Cross-cutting concerns, Slicing, Risks, Test strategy |
 | Feature | Context, Options, Decision, Impacts, Test strategy |
-| Feature that is medium or large, or high risk | also **Detailed design**: API and interfaces, data model and migrations, key flows, errors |
+| Feature that is medium or large, or high risk | also **Interfaces**, **Data model** (with the migration), **Flows** and **Errors** |
 | Feature that belongs to an initiative | also **Parent design**: what it builds on in the initiative's solution design, and what it adds |
 | Low-risk feature | no design stage |
+
+A section where nothing changes says `none: <why>`. A design written before
+a section was required isn't re-checked for it once it has passed design.
+
+### Architecture docs and the agreed data model
+
+`.ignition/architecture/` describes the system as it is now: `overview.md`
+(context, containers, trust boundaries), `data-model.md` and `flows/` (one
+file per important journey). Designs read it first and describe their change
+against it. The work that changes the system updates it in the same branch.
+
+The data model is agreed in design, not discovered in a migration. A design
+whose Data model section describes a change writes the target model into
+`architecture/data-model.md`, naming its item, and the design stage can't
+complete until it does. The owner approves the model with the design. The
+migrations and ORM models then implement it, and stay the source of truth for
+exact types. A build that must differ updates the model and the design, and
+asks the owner if it changes what they approved.
+
+Diagrams are Mermaid, which agents read and write as text and GitHub renders:
+a `flowchart` for containers, an `erDiagram` for data, a `sequenceDiagram`
+per flow with its failure paths. They're recommended, not checked. See
+[skill/ignition/references/diagrams.md](skill/ignition/references/diagrams.md).
 
 The initiative's solution design is the high-level design that all its child
 items share, so the owner approves it at normal risk as well as high. A child
 item designs only what differs from it. If a child needs to change the
 parent's design, such as an interface between slices, that is a scope change:
 the agent logs a `scope` entry and asks the owner.
+
+## Verification
+
+The builder doesn't verify its own work. Verify is done by a QA agent: a
+fresh agent that didn't build the change, started with the handoff
+`ignition qa <ID>` prints. It tests the exact revision, prefers automated
+checks, writes the tests that are missing, and records every check as
+evidence, failures included. It doesn't fix what it finds.
+
+`verify` is complete when, on the **build revision** (the commit the latest
+`change` entry names):
+- every numbered acceptance criterion (Acceptance criteria for a feature,
+  Done when for a task) has a passing record that names it with
+  `--criteria`;
+- no criterion or claim's latest result is a failure. A failure recorded
+  after a pass reopens it;
+- at least one record passes.
+
+At normal and high risk, only **QA evidence** counts towards those passes:
+evidence recorded by someone other than whoever logged the changes (a
+different name, or the same name in a different session). Failures count
+whoever records them. Low-risk work may verify itself.
+
+A fix made during verify is a new `change`, so it moves the build revision:
+QA runs again, and evidence on the old revision no longer counts. The item
+stays in verify; it doesn't go back to build.
+
+Who recorded the evidence is what the agent reported. Until agent runs are
+bound to verified identities ([ROADMAP.md](ROADMAP.md), phase 5), keeping QA
+independent is a rule agents follow, not one Ignition can prove.
 
 ## Owner checkpoints
 

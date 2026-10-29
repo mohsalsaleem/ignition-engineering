@@ -2,6 +2,7 @@
 id: {{.ID}}
 work: {{.Work}}
 claim: {{.Claim}}
+criteria:
 result: {{.Result}}
 revision: {{.Revision}}
 environment: {{.Environment}}

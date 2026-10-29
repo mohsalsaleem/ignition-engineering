@@ -77,6 +77,9 @@ func Init(root, product string) error {
 			return err
 		}
 	}
+	if err := EnsureArchitecture(root); err != nil {
+		return err
+	}
 	return writeNew(filepath.Join(root, ".gitattributes"), gitattributes)
 }
 
@@ -135,6 +138,7 @@ type Item struct {
 	Log      []record.Entry
 	Children []*Item
 	Problems []string // records that couldn't be read
+	Root     string   // the workspace the item belongs to
 }
 
 func (it *Item) Kind() model.Kind   { return model.Kind(it.Brief.Get("kind")) }
@@ -245,7 +249,7 @@ func (w *Workspace) Load(id string) (*Item, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s/brief.md: %w", id, err)
 	}
-	it := &Item{ID: id, Dir: dir, Brief: brief, Docs: map[model.Artifact]*record.Doc{model.BriefDoc: brief}}
+	it := &Item{ID: id, Dir: dir, Root: w.Root, Brief: brief, Docs: map[model.Artifact]*record.Doc{model.BriefDoc: brief}}
 	for _, a := range []model.Artifact{model.DesignDoc, model.PlanDoc, model.ReleaseDoc} {
 		text, err := os.ReadFile(filepath.Join(dir, string(a)))
 		if errors.Is(err, os.ErrNotExist) {
@@ -315,7 +319,7 @@ func (w *Workspace) List() ([]*Item, error) {
 			continue
 		}
 		d, err := record.Parse(string(text))
-		it := &Item{ID: e.Name(), Dir: w.itemDir(e.Name()), Brief: d}
+		it := &Item{ID: e.Name(), Dir: w.itemDir(e.Name()), Root: w.Root, Brief: d}
 		if err != nil {
 			it.Brief, _ = record.Parse("")
 			it.Problems = []string{fmt.Sprintf("brief.md: %v", err)}
@@ -365,6 +369,7 @@ func (w *Workspace) Log(id, typ string, by Actor, text string) error {
 // EvidenceInput is what an evidence record states.
 type EvidenceInput struct {
 	Claim, Result, Revision, Environment, Method, Observed, Limits string
+	Criteria                                                       string // acceptance criteria numbers, e.g. "1,3"
 	By                                                             Actor
 }
 
@@ -382,6 +387,10 @@ func (w *Workspace) AddEvidence(id string, in EvidenceInput) (string, error) {
 			return "", fmt.Errorf("evidence needs a %s", name)
 		}
 	}
+	criteria, err := it.normalizeCriteria(in.Criteria)
+	if err != nil {
+		return "", err
+	}
 	eid, err := w.NewID("E")
 	if err != nil {
 		return "", err
@@ -395,7 +404,7 @@ func (w *Workspace) AddEvidence(id string, in EvidenceInput) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	for k, v := range map[string]string{"claim": in.Claim, "revision": in.Revision, "environment": in.Environment, "method": in.Method,
+	for k, v := range map[string]string{"claim": in.Claim, "criteria": criteria, "revision": in.Revision, "environment": in.Environment, "method": in.Method,
 		"by": in.By.name(), "agent": in.By.Agent, "model": in.By.Model, "session": in.By.Session} {
 		d.Set(k, v)
 	}
