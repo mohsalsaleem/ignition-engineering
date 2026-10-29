@@ -14,6 +14,9 @@ import (
 
 var agent = Actor{Name: "claude-code", Agent: "claude-code", Model: "claude-opus-5-5", Session: "s-1"}
 
+// qaAgent verifies what agent built: the same tool in another session.
+var qaAgent = Actor{Name: "claude-code", Agent: "claude-code", Model: "claude-opus-5-5", Session: "s-2"}
+
 func newWorkspace(t *testing.T) *Workspace {
 	t.Helper()
 	root := t.TempDir()
@@ -95,6 +98,11 @@ func TestBugLifecycle(t *testing.T) {
 
 	if _, err := w.AddEvidence(it.ID, EvidenceInput{Claim: "Released image is pulled", Result: "pass",
 		Revision: "c18a6ac", Environment: "local", Method: "go test", By: agent}); err != nil {
+		t.Fatal(err)
+	}
+	mustFail(t, w, it.ID, nil, ErrNotReady, "no passing QA evidence on c18a6ac")
+	if _, err := w.AddEvidence(it.ID, EvidenceInput{Claim: "Released image is pulled", Result: "pass",
+		Revision: "c18a6ac", Environment: "local", Method: "go test", By: qaAgent}); err != nil {
 		t.Fatal(err)
 	}
 	mustFail(t, w, it.ID, nil, ErrNeedsOwner, "release to users")

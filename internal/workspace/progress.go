@@ -59,6 +59,8 @@ func (it *Item) unmet(r model.Rule) []string {
 			}
 		}
 		return []string{fmt.Sprintf("no evidence with result %s (add it with `ignition evidence %s --result %s ...`)", r.Result, it.ID, r.Result)}
+	case model.Verified:
+		return it.unverified(r.Independent)
 	case model.EvidenceAny:
 		if len(it.Evidence) == 0 {
 			return []string{fmt.Sprintf("no evidence recorded (add it with `ignition evidence %s ...`)", it.ID)}
@@ -127,6 +129,11 @@ func (it *Item) Check() []string {
 	}
 	for _, e := range it.Evidence {
 		out = append(out, checkEvidence(it.ID, e)...)
+		if c := e.Get("criteria"); c != "" {
+			if _, err := it.normalizeCriteria(c); err != nil {
+				out = append(out, fmt.Sprintf("evidence %s: %v", e.Get("id"), err))
+			}
+		}
 	}
 	if d := it.Docs[model.PlanDoc]; d != nil {
 		if tasks, err := d.Tasks(); err != nil {
@@ -140,6 +147,11 @@ func (it *Item) Check() []string {
 		}
 	}
 	for _, s := range model.Passed(f, it.Stage()) {
+		if s == model.Verify {
+			// Evidence is append-only, so verify can't be emptied. A failure
+			// found after release is new work: a bug, not a broken record.
+			continue
+		}
 		for _, u := range it.Unmet(s) {
 			out = append(out, fmt.Sprintf("passed %s, but %s", s, u))
 		}

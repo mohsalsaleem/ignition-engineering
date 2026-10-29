@@ -196,15 +196,37 @@ const (
 	LogEntry
 	// ChildrenClosed: the item has child items and all are closed.
 	ChildrenClosed
+	// Verified: evidence on the built revision passes, every acceptance
+	// criterion passes, and nothing on that revision has failed since. With
+	// Independent, the passes must come from someone other than the builder.
+	Verified
 )
 
 type Rule struct {
-	Kind     RuleKind
-	Artifact Artifact
-	Names    []string
-	Result   string
-	Entry    string
+	Kind        RuleKind
+	Artifact    Artifact
+	Names       []string
+	Result      string
+	Entry       string
+	Independent bool
 }
+
+// CriteriaSection is the brief section whose numbered lines are an item's
+// acceptance criteria, which verify evidence must cover. Other kinds have none.
+func CriteriaSection(k Kind) string {
+	switch k {
+	case Feature:
+		return "Acceptance criteria"
+	case Task:
+		return "Done when"
+	}
+	return ""
+}
+
+// IndependentQA reports whether verifying an item needs evidence from someone
+// other than its builder: a QA agent or person. Low-risk work may verify
+// itself.
+func IndependentQA(f Facts) bool { return f.Risk.AtLeast(Normal) }
 
 func sections(a Artifact, names ...string) Rule {
 	return Rule{Kind: Sections, Artifact: a, Names: names}
@@ -251,7 +273,7 @@ func Exit(f Facts, s Stage) []Rule {
 		}
 		return []Rule{{Kind: TasksDone}, {Kind: LogEntry, Entry: "change"}}
 	case Verify:
-		return []Rule{{Kind: EvidenceResult, Result: "pass"}}
+		return []Rule{{Kind: Verified, Independent: IndependentQA(f)}}
 	case Release:
 		return []Rule{sections(ReleaseDoc, "Revision", "Checks", "Rollback", "Production verification")}
 	case Observe:

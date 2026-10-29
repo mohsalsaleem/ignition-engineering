@@ -103,7 +103,8 @@ func TestSkillMatchesTheCLI(t *testing.T) {
 		}
 	}
 	for _, msg := range []string{"stage not complete", "fix these first", "owner decision needed", "needs the owner's answer to",
-		"fill in", "no evidence with result", "no %s entry", "entries are written by", "no Ignition workspace in"} {
+		"fill in", "no evidence with result", "no %s entry", "entries are written by", "no Ignition workspace in",
+		"no passing %s on", "has no %s on", "failed on %s", "names no commit", "isn't one of"} {
 		if !strings.Contains(source.String(), msg) {
 			t.Errorf("commands.md explains %q, but no code produces it", msg)
 		}
@@ -212,5 +213,43 @@ func TestSkillInstallsForEveryAgentFamily(t *testing.T) {
 	out.Reset()
 	if code := run([]string{"skill", "install", "--for", "nope", "--project", project}, &out, &out); code != 1 {
 		t.Errorf("unknown target exit %d", code)
+	}
+}
+
+func TestQAHandoffThroughTheCLI(t *testing.T) {
+	fakeEnv(t, nil)
+	dir := t.TempDir()
+	ignition(t, dir, "init", "--product", "example")
+	out, _ := ignition(t, dir, "new", "task", "Rotate logs", "--risk", "normal", "--size", "small")
+	id := regexp.MustCompile(`W-\d{8}-[0-9a-z]{6}`).FindString(out)
+	if out, code := ignition(t, dir, "qa", id); code != 1 || !strings.Contains(out, "nothing to test") {
+		t.Fatalf("qa before a change: %d\n%s", code, out)
+	}
+	brief := filepath.Join(dir, "work", id, "brief.md")
+	b, _ := os.ReadFile(brief)
+	b = bytes.Replace(b, []byte("## Request\n"), []byte("## Request\n\nLogs fill the disk.\n"), 1)
+	b = bytes.Replace(b, []byte("## Done when\n"), []byte("## Done when\n\n1. Logs rotate daily.\n2. Old logs are deleted.\n"), 1)
+	os.WriteFile(brief, b, 0o644)
+	ignition(t, dir, "advance", id)
+	plan := filepath.Join(dir, "work", id, "plan.md")
+	b, _ = os.ReadFile(plan)
+	os.WriteFile(plan, bytes.Replace(b, []byte("|  |  |  |  |  |"), []byte("| T1 | Config | Both | done | - |"), 1), 0o644)
+	ignition(t, dir, "advance", id)
+	ignition(t, dir, "log", id, "--type", "change", "a1b2c3d adds logrotate")
+	ignition(t, dir, "advance", id)
+
+	out, code := ignition(t, dir, "qa", id)
+	for _, want := range []string{"Revision to test: a1b2c3d", "1. Logs rotate daily.", "criterion 2 has no QA evidence", "--by qa"} {
+		if code != 0 || !strings.Contains(out, want) {
+			t.Fatalf("qa: %d, missing %q\n%s", code, want, out)
+		}
+	}
+	var buf bytes.Buffer
+	if code := run([]string{"evidence", id, "--criteria", "1,2", "--claim", "Rotation and retention", "--result", "pass",
+		"--revision", "a1b2c3d", "--environment", "local", "--method", "qa/rotate_test.sh", "--dir", dir, "--by", "qa"}, &buf, &buf); code != 0 {
+		t.Fatalf("qa evidence: %d\n%s", code, buf.String())
+	}
+	if out, _ := ignition(t, dir, "status"); !strings.Contains(out, "waits for the owner") {
+		t.Fatalf("status after QA:\n%s", out)
 	}
 }

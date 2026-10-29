@@ -23,7 +23,8 @@ session. `ignition whoami` shows what will be recorded.
 | `ignition new KIND "TITLE" --risk R --size S [--parent ID]` | Creates an item in its first stage. A child (`--parent`) can only be created once the initiative's solution design is done |
 | `ignition advance ID [--owner NAME --decision "TEXT"]` | Moves to the next stage, creating its record file. The owner flags record a checkpoint decision. |
 | `ignition log ID --type TYPE "TEXT"` | Appends to the log. TYPE is one of note, finding, decision, change, handoff, scope. |
-| `ignition evidence ID --claim C --result R --revision V --environment E --method M [--observed O] [--limits L]` | Records evidence; R is one of pass, fail, inconclusive |
+| `ignition evidence ID --claim C --result R --revision V --environment E --method M [--criteria N,N] [--observed O] [--limits L]` | Records evidence; R is one of pass, fail, inconclusive. `--criteria` names the acceptance criteria it covers |
+| `ignition qa ID` | Prints the handoff for an independent QA agent: the revision to test, the criteria, the test strategy, what verify still needs, and how to record evidence |
 | `ignition decision "TITLE"` | Creates a product-wide decision record in `decisions/` |
 | `ignition check [ID]` | Reports problems in the records; exits 1 if there are any |
 | `ignition attribution [ID]` | Who built what: each person, agent and model, their entries, commits and sessions; owner decisions |
@@ -43,6 +44,10 @@ session. `ignition whoami` shows what will be recorded.
 | `owner decision needed: leaving <stage> needs the owner's answer to: …` | Ask the user that question. Advance with `--owner` and `--decision` only after they answer. |
 | `fill in "<Section>"` | The section has only guidance. Write content under the heading. |
 | `no evidence with result fail/pass` | Run the check and record it with `ignition evidence`. |
+| `no passing QA evidence on <sha>` / `criterion N has no QA evidence` | Run `ignition qa ID` and give it to a fresh QA agent. Your own evidence doesn't count at normal or high risk. |
+| `criterion N failed on <sha>` | Fix it, commit, log the `change`, and run QA again on the new revision. |
+| `the latest change entry names no commit` | Log your commit as `ignition log ID --type change "<sha> <what>"`. |
+| `criteria: "N" isn't one of …` | Use the numbers of the brief's acceptance criteria. |
 | `log: no change entry` | Record your commit with `ignition log ID --type change`. |
 | ``stage entries are written by `ignition advance` `` (or checkpoint) | You can't log these directly. Use `advance`. |
 | ``evidence entries are written by `ignition evidence` `` | Use `ignition evidence`, not `ignition log`. |

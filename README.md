@@ -50,9 +50,21 @@ ignition evidence W-20261027-k3f9q2 --claim "Empty export returns 500" --result 
     --revision 4f2a9c1 --environment local --method "go test ./export -run Empty"
 ignition log W-20261027-k3f9q2 --type change "4f2a9c1 writes headers for empty reports"
 ignition advance W-20261027-k3f9q2
+ignition qa W-20261027-k3f9q2         # the handoff for a QA agent, which records its own evidence
 ignition status
 ignition check
 ```
+
+## Verification by a QA agent
+
+The agent that builds a change doesn't verify it. `ignition qa <ID>` prints
+a handoff for a fresh QA agent: the revision to test, the acceptance
+criteria, the test strategy, and how to record evidence. The QA agent tests
+that exact revision, writes the automated tests that are missing, and records
+every check, failures included. At normal and high risk, `verify` completes
+only when QA evidence passes every numbered acceptance criterion on the
+revision the latest `change` names, with no failure since. A fix moves the
+revision, so QA runs again. See [WORK_MODEL.md](WORK_MODEL.md#verification).
 
 ## For agents
 
@@ -93,7 +105,7 @@ Ignition checks that each stage's artifact is complete before an item moves
 on. It refuses to skip a stage. It also records the owner's decision at each
 checkpoint. It doesn't yet *enforce* governance: an agent with write access
 to the records could still type an owner decision itself, or report a
-different agent or model. Signed approvals, verifying evidence at its
+different agent or model, or record evidence as QA for its own work. Signed approvals, verifying evidence at its
 source, and gates in CI are the next phases, in [ROADMAP.md](ROADMAP.md).
 
 ## Develop

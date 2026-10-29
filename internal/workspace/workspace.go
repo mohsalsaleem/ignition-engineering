@@ -365,6 +365,7 @@ func (w *Workspace) Log(id, typ string, by Actor, text string) error {
 // EvidenceInput is what an evidence record states.
 type EvidenceInput struct {
 	Claim, Result, Revision, Environment, Method, Observed, Limits string
+	Criteria                                                       string // acceptance criteria numbers, e.g. "1,3"
 	By                                                             Actor
 }
 
@@ -382,6 +383,10 @@ func (w *Workspace) AddEvidence(id string, in EvidenceInput) (string, error) {
 			return "", fmt.Errorf("evidence needs a %s", name)
 		}
 	}
+	criteria, err := it.normalizeCriteria(in.Criteria)
+	if err != nil {
+		return "", err
+	}
 	eid, err := w.NewID("E")
 	if err != nil {
 		return "", err
@@ -395,7 +400,7 @@ func (w *Workspace) AddEvidence(id string, in EvidenceInput) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	for k, v := range map[string]string{"claim": in.Claim, "revision": in.Revision, "environment": in.Environment, "method": in.Method,
+	for k, v := range map[string]string{"claim": in.Claim, "criteria": criteria, "revision": in.Revision, "environment": in.Environment, "method": in.Method,
 		"by": in.By.name(), "agent": in.By.Agent, "model": in.By.Model, "session": in.By.Session} {
 		d.Set(k, v)
 	}

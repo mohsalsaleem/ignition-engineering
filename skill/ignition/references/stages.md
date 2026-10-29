@@ -124,12 +124,23 @@ stop.
 
 ## verify
 
-**Record:** evidence with result **pass**.
+**Record:** evidence on the **build revision**, the commit the latest
+`change` entry names: at least one pass, a pass for every numbered acceptance
+criterion (`--criteria`), and no criterion or claim whose latest result is a
+failure. At normal and high risk, only **QA evidence** counts: evidence from
+someone other than the builder.
 **Owner decides** before release, for normal and high risk.
-**Do:** run the project's checks and the acceptance criteria on the exact
-revision, and record each as evidence. For a bug, the test that failed in
-reproduce must now pass. Record failures too. Then ask the owner whether the
-evidence is enough to release.
+**Do:** hand the item to a QA agent with `ignition qa <ID>` (see SKILL.md,
+"Verify with a QA agent"). QA tests that exact revision, prefers automated
+checks, writes the tests that are missing, and records every check, failures
+included. For a bug, the test that failed in reproduce must now pass. If QA
+finds a failure, fix it in this stage, log the `change`, and run QA again on
+the new revision. Then ask the owner whether the evidence is enough to
+release.
+
+**Criteria** are the numbered lines of `brief.md`'s Acceptance criteria (a
+feature) or Done when (a task). Number them, or verify can't link evidence to
+them.
 
 ## release
 

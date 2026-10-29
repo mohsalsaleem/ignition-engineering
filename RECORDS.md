@@ -66,9 +66,12 @@ Label a statement before relying on it:
   method, actor and time.
 
 Every evidence record names:
-- the exact revision: commit, tag, image digest or deployment ID;
+- the exact revision: commit, tag, image digest or deployment ID. Verify
+  evidence names the commit first, as `a1b2c3d` or `a1b2c3d (staging)`;
 - the environment;
-- the method: command, test or steps.
+- the method: command, test or steps;
+- optionally, `criteria`: the numbers of the acceptance criteria it covers,
+  such as `1,3`. Verify needs a pass for each one.
 
 Its result is pass, fail or inconclusive. A failing check is evidence too;
 record it rather than retrying until green. "Merged", "deployed" or "returns
