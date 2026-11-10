@@ -91,6 +91,10 @@ sequenceDiagram
     end
 ```
 
+Write each step as an action and the state it leaves: what the user or
+caller does, then what they can observe. A flow written that way is a list
+of assertions, and a behaviour test can follow it line by line.
+
 Include at least one failure path with `alt` or `opt`. Under the diagram, say
 what is retried, what is idempotent, and which step commits the change. The
 QA agent tests every failure path you draw.

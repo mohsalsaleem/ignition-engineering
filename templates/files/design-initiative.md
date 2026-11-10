@@ -15,7 +15,7 @@ designs only what differs from it. Read `.ignition/architecture/` first.
 
 ## Decision
 
-<!-- The chosen approach and why. Product-wide decisions also go in decisions/ (`ignition decision`) and are linked here. -->
+<!-- The chosen approach and why. A choice that binds later work is also stated in .ignition/architecture/overview.md. -->
 
 ## Architecture
 
@@ -48,4 +48,4 @@ Update .ignition/architecture/data-model.md to the agreed model, naming this ite
 
 ## Test strategy
 
-<!-- The end-to-end journeys that prove the outcome across slices, and what each child item must prove on its own. -->
+<!-- The end-to-end journeys that prove the outcome across slices, and what each child item must prove on its own. Say how behaviour is tested without a person watching: the behaviour checks in PROJECT.md, or the ones this initiative must build first. -->

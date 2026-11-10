@@ -2,6 +2,8 @@ package workspace
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"sort"
@@ -210,4 +212,27 @@ func criteriaNums(cs []Criterion) string {
 		out = append(out, c.Num)
 	}
 	return strings.Join(out, ", ")
+}
+
+// project reads the workspace's PROJECT.md, or nil if it can't be read.
+func project(root string) *record.Doc {
+	b, err := os.ReadFile(filepath.Join(root, "PROJECT.md"))
+	if err != nil {
+		return nil
+	}
+	d, err := record.Parse(string(b))
+	if err != nil {
+		return nil
+	}
+	return d
+}
+
+// ProjectSection returns a section of the workspace's PROJECT.md, or "".
+func ProjectSection(root, name string) string {
+	d := project(root)
+	if d == nil {
+		return ""
+	}
+	s, _ := d.Section(name)
+	return s
 }

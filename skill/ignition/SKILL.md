@@ -1,6 +1,6 @@
 ---
 name: ignition
-description: Do engineering work through Ignition's staged work model. Work items (initiative, feature, bug, task, investigation, incident) move through stages such as shape, design, plan, build, verify and release. Each stage leaves written records and evidence, and the owner decides at checkpoints. Use when a repository has an `.ignition/` folder, when the user mentions Ignition or a work item ID like W-20261027-k3f9q2, or when the user asks to start, continue or hand off a task, feature, bug, initiative, investigation or incident under Ignition.
+description: Do engineering work through Ignition's staged work model. Work items (initiative, feature, bug, task, investigation) move through stages such as shape, design, plan, build, verify and release. Each stage leaves written records and evidence, and the owner decides at checkpoints. Use when a repository has an `.ignition/` folder, when the user mentions Ignition or a work item ID like W-20261027-k3f9q2, or when the user asks to start, continue or hand off a task, feature, bug, initiative or investigation under Ignition.
 compatibility: Requires the ignition CLI and git. Works with any agent that reads Agent Skills, including Claude Code, Codex, Cursor, Gemini CLI and GitHub Copilot.
 ---
 
@@ -64,7 +64,10 @@ ignition new <kind> "<one-line title>" --risk <low|normal|high> --size <small|me
 | bug | Existing behaviour is wrong |
 | task | Bounded work with a clear done condition: operations, refactoring, docs, upgrades |
 | investigation | A question must be answered before anyone can decide |
-| incident | Something broke or nearly broke in a live system |
+
+A live outage isn't a work item. Restore service the way the project says
+to, then open a bug for the fix and an investigation for the review. See
+"After an outage" in [references/stages.md](references/stages.md).
 
 **Risk** decides which stages apply and where the owner decides. Use **high**
 for auth, permissions, personal data, payments, AI decisions, schema or data
@@ -93,18 +96,11 @@ solution design before anything is built. Each child's design builds on the
 solution design and covers only what it adds. A child that needs to change
 the solution design is a scope change: log it and ask the owner.
 
-There are no separate high-level and low-level design stages. The design
-stage asks for more as size and risk grow: medium, large and high-risk
-features also fill Interfaces, Data model, Flows and Errors.
-
-**Design against the architecture docs.** `.ignition/architecture/` holds the
-system as it is now: `overview.md`, `data-model.md` and `flows/`. Read them
-before designing, and update what your design changes in the design stage
-itself. The data model is agreed before it's built: a design that changes the
-data writes the target model into `data-model.md`, naming the item, so the
-owner approves it with the design. Draw diagrams in Mermaid: a `flowchart`
-for components, an `erDiagram` for data, and a `sequenceDiagram` per flow,
-including a failure path. See [references/diagrams.md](references/diagrams.md).
+There is one design stage, and it asks for more as size and risk grow.
+Design against `.ignition/architecture/`, which holds the system as it is
+now, and update what your design changes there. A design that changes the
+data writes the agreed model into `architecture/data-model.md` before it can
+leave design. See [references/diagrams.md](references/diagrams.md).
 
 ## The loop
 
@@ -148,29 +144,27 @@ ignition advance <ID> --owner "<their name>" --decision "<their words>"
 
 ## Verify with a QA agent
 
-The builder doesn't verify its own work. At normal and high risk, `verify`
-counts only evidence from someone other than whoever logged the changes: in
-practice, a QA agent you start for it. Every numbered acceptance criterion
-needs a pass on the revision the latest `change` entry names, and a newer
-failure reopens it.
+You don't verify what you built. At normal and high risk, `verify` counts
+only evidence from someone other than whoever logged the changes.
 
 1. When build is done, run `ignition qa <ID>`. It prints the QA agent's whole
-   task: the revision, the criteria, the test strategy, what's still missing,
-   and how to record evidence.
+   task.
 2. Start a fresh agent with that output as its prompt: a subagent, or a new
-   session. Give it no other context, so it tests what was asked rather than
-   what you meant to build. It records as `--by qa`. A subagent may share
-   your session ID, so the name is what tells it apart from you.
+   session. Give it no other context, so it tests what was asked and not
+   what you meant to build. It records as `--by qa`.
 3. Wait for its handoff. Don't record evidence for it, and don't argue its
    failures away.
 4. If it found failures, fix them while the item stays in verify. Commit, log
    the `change`, and run QA again: evidence on the old revision no longer
    counts.
-5. When `ignition brief <ID>` shows verify complete, ask the owner (see
-   below).
 
-At low risk you may verify your own work, with the same criteria and revision
-rules.
+At low risk you may verify your own work, under the same rules.
+
+Verify is only as good as the product's checks. `PROJECT.md` describes its
+behaviour checks under that heading. If you work out how to prove behaviour
+without a UI or a person watching and it isn't written there, write it
+there. If the product has no such check and proving your change was slow or
+manual, log a finding.
 
 ## Committing the records
 
@@ -192,26 +186,10 @@ commit rules. A reviewer then sees the change and its evidence together.
 | You made a choice inside the agreed scope | `ignition log <ID> --type decision "..."` |
 | You committed a change | `ignition log <ID> --type change "<sha> <what and why>"` |
 | The scope must change | `ignition log <ID> --type scope "..."`, then **stop and ask the owner** |
-| You checked something | `ignition evidence <ID> --claim ... --criteria <N,N> --result pass\|fail\|inconclusive --revision ... --environment ... --method ... --observed ... --limits ...` |
+| You checked something | `ignition evidence <ID> --claim ... --criteria <N,N> --result pass\|fail\|inconclusive --revision <sha> --environment ... --method ... --observed ... --limits ...` |
 | Build is done and the item needs QA | `ignition qa <ID>`, given to a fresh QA agent |
-| A choice affects the whole product | `ignition decision "<title>"`, then fill in the file it creates |
 | Your session is ending | `ignition log <ID> --type handoff "changed: ... verified: ... open: ..."` |
 | Someone asks who built something | `ignition attribution <ID>` (or no ID, for every item) |
-
-## Evidence rules
-
-- Evidence is what you **observed** on a named **revision** (commit, tag,
-  digest, deployment ID) in a named **environment**, by a stated **method**.
-  It's not what should be true.
-- Record failures as failures. A failing test before a fix is required
-  evidence for a bug.
-- "Merged", "deployed", "builds" or "returns 200" doesn't show that a user
-  journey works. Check the journey.
-- Fill `--limits` honestly: what this evidence doesn't show.
-- Name the acceptance criteria a check covers with `--criteria`, and give
-  `--revision` the commit you actually tested.
-- Never edit earlier evidence or log entries. Add a new entry that corrects
-  them.
 
 ## Never
 
@@ -227,9 +205,11 @@ commit rules. A reviewer then sees the change and its evidence together.
 
 ## Reference
 
-- [references/stages.md](references/stages.md): each stage, its record, and
-  what good looks like.
-- [references/commands.md](references/commands.md): every command, its flags,
-  and what its errors mean.
+- [references/stages.md](references/stages.md): each stage, its record, where
+  the owner decides, and what good looks like. Read your stage's section
+  before doing it.
+- [references/records.md](references/records.md): where records live, their
+  format, and the rules for evidence.
 - [references/diagrams.md](references/diagrams.md): the architecture docs,
   agreeing the data model, and Mermaid diagrams.
+- `ignition help`: every command and flag.

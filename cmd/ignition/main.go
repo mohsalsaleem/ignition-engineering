@@ -16,7 +16,8 @@ import (
 	"github.com/mohsalsaleem/ignition-engineering/skill"
 )
 
-var version = "0.9.0"
+// version is the release this source is; bump it here when tagging.
+const version = "0.10.0"
 
 const usage = `ignition: structured engineering work for people and agents.
 
@@ -30,7 +31,7 @@ Workspace
                                     DIR/.ignition (for public or multi-repository products)
 Work
   new KIND "TITLE" [--risk R] [--size S] [--parent ID]
-                                    KIND: initiative feature bug task investigation incident
+                                    KIND: initiative feature bug task investigation
   brief ID                          where an item stands and what it needs next
   status                            every item, its stage and what it waits on
   advance ID [--owner NAME --decision "TEXT"]
@@ -40,7 +41,6 @@ Work
               [--criteria N,N] [--observed O] [--limits L]
   qa ID                             the handoff for an independent QA agent: what to test, on which
                                     revision, and how to record it
-  decision "TITLE"                  create a product-wide decision record
   check [ID]                        report problems in the records; exits 1 if any
   attribution [ID]                  who built what: people, agents and models, from the log
   whoami                            who Ignition will record as acting
@@ -123,8 +123,6 @@ func run(args []string, out, errw io.Writer) int {
 		err = c.evidence(fs, rest)
 	case "qa":
 		err = c.qa(fs, rest)
-	case "decision":
-		err = c.decision(fs, rest)
 	case "check":
 		err = c.check(fs, rest)
 	case "attribution":
@@ -473,26 +471,6 @@ func (c *cli) evidence(fs *flag.FlagSet, args []string) error {
 		return err
 	}
 	fmt.Fprintf(c.out, "Recorded evidence %s on %s.\n", eid, id)
-	return nil
-}
-
-func (c *cli) decision(fs *flag.FlagSet, args []string) error {
-	pos, err := parse(fs, args)
-	if err != nil {
-		return err
-	}
-	if err := want(pos, 1, `"TITLE"`); err != nil {
-		return err
-	}
-	w, err := c.workspace()
-	if err != nil {
-		return err
-	}
-	path, err := w.NewDecision(pos[0])
-	if err != nil {
-		return err
-	}
-	fmt.Fprintf(c.out, "Created %s.\n", path)
 	return nil
 }
 

@@ -1,5 +1,5 @@
 // Package workspace reads and changes a product's Ignition records: its work
-// items, their artifacts, evidence and log, and its decisions.
+// items, their artifacts, evidence and log, and its architecture docs.
 package workspace
 
 import (
@@ -20,7 +20,7 @@ import (
 )
 
 // Workspace is a product's records folder: PROJECT.md, AGENTS.md, work/ and
-// decisions/.
+// architecture/.
 type Workspace struct {
 	Root string
 	Now  func() time.Time
@@ -63,10 +63,8 @@ func Init(root, product string) error {
 	if isWorkspace(root) {
 		return fmt.Errorf("%s is already an Ignition workspace", root)
 	}
-	for _, d := range []string{"work", "decisions"} {
-		if err := os.MkdirAll(filepath.Join(root, d), 0o755); err != nil {
-			return err
-		}
+	if err := os.MkdirAll(filepath.Join(root, "work"), 0o755); err != nil {
+		return err
 	}
 	for _, name := range []string{"PROJECT.md", "AGENTS.md"} {
 		text, err := templates.Render(name, map[string]string{"Product": product})
@@ -416,30 +414,4 @@ func (w *Workspace) AddEvidence(id string, in EvidenceInput) (string, error) {
 		return "", err
 	}
 	return eid, w.appendEntry(it, "evidence", in.By, fmt.Sprintf("%s (%s): %s", eid, in.Result, in.Claim))
-}
-
-// NewDecision creates a product-wide decision record and returns its path.
-func (w *Workspace) NewDecision(title string) (string, error) {
-	if strings.TrimSpace(title) == "" {
-		return "", errors.New("a decision needs a title")
-	}
-	id, err := w.NewID("D")
-	if err != nil {
-		return "", err
-	}
-	text, err := templates.Render("decision.md", map[string]string{"ID": id, "Title": "x", "Created": w.stamp()})
-	if err != nil {
-		return "", err
-	}
-	d, err := record.Parse(text)
-	if err != nil {
-		return "", err
-	}
-	d.Set("title", title)
-	d.Body = strings.Replace(d.Body, "# Decision: x", "# Decision: "+title, 1)
-	if err := os.MkdirAll(filepath.Join(w.Root, "decisions"), 0o755); err != nil {
-		return "", err
-	}
-	path := filepath.Join(w.Root, "decisions", id+".md")
-	return path, writeNew(path, d.String())
 }

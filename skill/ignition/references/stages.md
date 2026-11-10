@@ -10,12 +10,27 @@ item's route.
 | bug | intake → reproduce → diagnose → build → verify → release → closed |
 | task | intake → plan → build → verify → release → closed |
 | investigation | intake → method → findings → decision → closed |
-| incident | contain → timeline → recover → review → closed |
 
 Two things change a route:
 - A low-risk feature skips design.
 - `release: none` in the brief's frontmatter skips release. Use it only when
   nothing ships to users, and log why.
+
+The owner decides when an item leaves these stages:
+
+| Leaving | Low | Normal | High |
+| --- | --- | --- | --- |
+| shape | | owner | owner |
+| design (initiative) | | owner | owner |
+| design (feature) | | | owner |
+| diagnose | | | owner |
+| verify, into release | | owner | owner |
+| decision | | owner | owner |
+
+An item with no risk set is treated as high. `ignition check` re-checks
+every stage an item has passed: emptying an earlier record is a problem, and
+the item can't move until it's fixed. A record written before a section was
+required isn't re-checked for that section, and neither is a passed verify.
 
 ## intake
 
@@ -55,13 +70,17 @@ Data model describes a change must also update
   the diagrams.
 - Give at least two real options, each with costs and failure modes.
   "Do nothing" counts if it's real.
-- Under Decision, say which option and why. A choice that affects the whole
-  product also gets `ignition decision`, linked here.
+- Under Decision, say which option and why. A choice that binds later work
+  is also stated in `architecture/overview.md`.
 - Under Impacts, cover data, security and privacy, migrations and
   compatibility, rollback, observability and cost. Write "none" where there
   is none.
-- Under Test strategy, say which tests prove each criterion and each failure
-  path.
+- Under Test strategy, name the test that proves each numbered criterion and
+  each failure path, and the command that runs it. Prefer behaviour tests:
+  the real logic, driven by actions and checked by state, with test data at
+  the edges and no real network. Keep unit tests for tricky pure logic and
+  end-to-end tests for a few journeys. Say what the tests can't see, such
+  as UI wiring, and how that is checked.
 - When required, the detailed design. Write what a reviewer needs to judge
   the change before it's built, not a copy of the code. Write
   "none: <why>" in a section where nothing changes.
@@ -73,7 +92,9 @@ Data model describes a change must also update
     `architecture/data-model.md` too, naming this item, so the owner approves
     the model now rather than finding it in a migration later.
   - Flows: a `sequenceDiagram` per key flow, with at least one failure path;
-    retries, timeouts, idempotency, and where the change commits.
+    retries, timeouts, idempotency, and where the change commits. Write each
+    step as an action and the state it leaves, so each step is something a
+    test can assert.
   - Errors: what fails, what the user or caller sees, what's retried, and
     what's logged or alerted.
 - If the change adds or reconnects components, or changes an important
@@ -197,12 +218,14 @@ evidence record; then Decision and Follow-up.
 production change the decision calls for gets its own work item, listed under
 Follow-up.
 
-## contain, timeline, recover, review (incident)
-
-**Record:** `brief.md`: Impact and Containment; then Timeline; then Recovery,
-with evidence of recovery; then Cause and Follow-up.
-**Owner decides** the review, at every risk level.
-**Do:** stop the impact first, and touch only what the project allows.
-Timeline entries are "time with zone · what happened · evidence". Recovery
-evidence is a real journey or data check. Cause separates facts from
-hypotheses, without blame. Follow-up lists the bugs and tasks you created.
+**After an outage.** Restore service first, the way the project says to.
+Ignition doesn't gate that. Then record it as two items:
+- A **bug** for the fix, at the risk the affected area carries. Its
+  reproduce evidence is the failure as it was seen; its verify evidence
+  shows it fixed.
+- A high-risk **investigation**: "What happened on <date>, and why wasn't
+  it caught?" Findings hold the impact (who, how, since when, and what is
+  still unknown), the timeline (time with zone · what happened or was done ·
+  evidence), what restored service with evidence that it is restored, and
+  the cause, with facts kept apart from hypotheses and no blame. The owner
+  accepts the Decision. Follow-up lists the bug and every task it led to.

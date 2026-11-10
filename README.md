@@ -11,11 +11,18 @@ memory; the records are what last.
 Intake → Shape → Design → Plan → Build → Verify → Release → Observe → Closed
 ```
 
-- [WORK_MODEL.md](WORK_MODEL.md): kinds, stages, routes, checkpoints and the
-  agent loop.
-- [RECORDS.md](RECORDS.md): where records live, their format, and what counts
-  as evidence.
+The agent skill is the written form of the model, for people as well as
+agents:
+- [skill/ignition/SKILL.md](skill/ignition/SKILL.md): how the work goes.
+- [stages](skill/ignition/references/stages.md): kinds, routes, what each
+  stage needs, and where the owner decides.
+- [records](skill/ignition/references/records.md): where records live, their
+  format, and what counts as evidence.
+- [diagrams](skill/ignition/references/diagrams.md): the architecture docs
+  and the agreed data model.
 - [ROADMAP.md](ROADMAP.md): what comes next, including enforced governance.
+
+The rules themselves are code: [internal/model](internal/model/model.go).
 
 ## Install
 
@@ -34,13 +41,6 @@ person and agent. Set it up once, from anywhere in the repository:
 ignition init
 ```
 
-`init` also makes `log.md` files merge cleanly across branches, and adds
-`.ignition` to `.dockerignore` when there's a Dockerfile.
-
-For a public or multi-repository product, the records can instead live in a
-separate private repository, checked out at `.ignition/` and hidden from the
-application's Git: `ignition attach --app DIR --records-url URL`.
-
 Then, from anywhere in the application:
 
 ```sh
@@ -55,26 +55,19 @@ ignition status
 ignition check
 ```
 
-## Design and architecture docs
+## What it enforces
 
-`.ignition/architecture/` holds the system as it is now: an overview of its
-containers, the agreed data model, and its important flows, with Mermaid
-diagrams that agents read as text and GitHub renders. Designs read it first,
-and update it with the change they make. The data model is agreed in design:
-a design that changes the data writes the target model into
-`architecture/data-model.md` for the owner to approve, before any migration
-is written. See [WORK_MODEL.md](WORK_MODEL.md#design-depth).
-
-## Verification by a QA agent
-
-The agent that builds a change doesn't verify it. `ignition qa <ID>` prints
-a handoff for a fresh QA agent: the revision to test, the acceptance
-criteria, the test strategy, and how to record evidence. The QA agent tests
-that exact revision, writes the automated tests that are missing, and records
-every check, failures included. At normal and high risk, `verify` completes
-only when QA evidence passes every numbered acceptance criterion on the
-revision the latest `change` names, with no failure since. A fix moves the
-revision, so QA runs again. See [WORK_MODEL.md](WORK_MODEL.md#verification).
+- **Stages.** An item can't leave a stage until that stage's record is
+  complete, and it can't skip one.
+- **Owner checkpoints.** Where the owner decides, `advance` stops until
+  their decision is recorded.
+- **The data model is agreed in design.** A design that changes the data
+  writes the agreed model into `.ignition/architecture/data-model.md` before
+  it can leave design, so the owner approves it before any migration exists.
+- **The builder doesn't verify its own work.** `ignition qa <ID>` prints a
+  handoff for a fresh QA agent. At normal and high risk, verify completes
+  only when evidence from someone other than the builder passes every
+  numbered acceptance criterion on the built commit, with no failure since.
 
 ## For agents
 
@@ -94,29 +87,17 @@ ignition skill install --for claude       # or --for agents; --to DIR for any ot
 read by Codex, Cursor, Gemini CLI, GitHub Copilot and others. Agents without
 skill support can read the same instructions with `ignition guide`.
 
-## Attribution
+Every log entry and evidence record stores who acted: a name, the agent
+tool, the exact model ID and the session. `ignition whoami` shows what will
+be recorded, and `ignition attribution` reports who built what.
 
-Every log entry and evidence record stores who acted: a name, the agent tool,
-the exact model ID, and the session.
-- The agent and session are detected where the tool exposes them; Claude Code
-  sets `AI_AGENT` and a session ID.
-- An agent can also give them with `--agent` and `--session` (or
-  `IGNITION_AGENT`, `IGNITION_SESSION`).
-- No tool exposes its model, so agents pass `--model` (or `IGNITION_MODEL`).
-  A missing model is recorded as unknown, with a warning, and never guessed.
+## What it doesn't do yet
 
-`ignition attribution [ID]` reports who built what: each person, agent and
-model, their entries, commits and sessions, and who made each owner decision.
-`ignition whoami` shows what will be recorded.
-
-## What it does and doesn't do
-
-Ignition checks that each stage's artifact is complete before an item moves
-on. It refuses to skip a stage. It also records the owner's decision at each
-checkpoint. It doesn't yet *enforce* governance: an agent with write access
-to the records could still type an owner decision itself, or report a
-different agent or model, or record evidence as QA for its own work. Signed approvals, verifying evidence at its
-source, and gates in CI are the next phases, in [ROADMAP.md](ROADMAP.md).
+These rules are recorded, not proven. An agent with write access to the
+records could type an owner decision itself, report a different model, or
+record evidence as QA for its own work. Signed approvals, evidence verified
+at its source and gates in CI are the next phases, in
+[ROADMAP.md](ROADMAP.md).
 
 ## Develop
 
@@ -124,5 +105,3 @@ source, and gates in CI are the next phases, in [ROADMAP.md](ROADMAP.md).
 make check    # vet and test
 make build    # bin/ignition
 ```
-
-Version: see [VERSION](VERSION).
