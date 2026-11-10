@@ -15,7 +15,7 @@ designs only what differs from it. Read `.ignition/architecture/` first.
 
 ## Decision
 
-<!-- The chosen approach and why. Product-wide decisions also go in decisions/ (`ignition decision`) and are linked here. -->
+<!-- The chosen approach and why. A choice that binds later work is also stated in .ignition/architecture/overview.md. -->
 
 ## Architecture
 

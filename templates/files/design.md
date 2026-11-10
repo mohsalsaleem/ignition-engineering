@@ -21,7 +21,7 @@ system described there.
 
 ## Decision
 
-<!-- The chosen option and why. Product-wide decisions go in decisions/ and are linked here. -->
+<!-- The chosen option and why. A choice that binds later work is also stated in .ignition/architecture/overview.md. -->
 
 ## Interfaces
 

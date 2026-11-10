@@ -14,7 +14,6 @@ func TestRoutes(t *testing.T) {
 		{Facts{Kind: Feature, Risk: Low}, []Stage{Intake, Shape, Plan, Build, Verify, Release, Observe, Closed}},
 		{Facts{Kind: Task, Risk: Low, NoRelease: true}, []Stage{Intake, Plan, Build, Verify, Closed}},
 		{Facts{Kind: Bug, Risk: High}, []Stage{Intake, Reproduce, Diagnose, Build, Verify, Release, Closed}},
-		{Facts{Kind: Incident}, []Stage{Contain, Timeline, Recover, Review, Closed}},
 	}
 	for _, c := range cases {
 		if got := Route(c.f); !slices.Equal(got, c.want) {
@@ -50,7 +49,6 @@ func TestOwnerDecisions(t *testing.T) {
 		{Facts{Kind: Bug, Risk: Normal}, Verify, true},
 		{Facts{Kind: Task, Risk: Normal, NoRelease: true}, Verify, false},
 		{Facts{Kind: Task, Risk: Low}, Verify, false},
-		{Facts{Kind: Incident, Risk: Low}, Review, true},
 	}
 	for _, c := range cases {
 		if got, _ := OwnerDecides(c.f, c.stage); got != c.want {

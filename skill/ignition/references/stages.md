@@ -10,7 +10,6 @@ item's route.
 | bug | intake → reproduce → diagnose → build → verify → release → closed |
 | task | intake → plan → build → verify → release → closed |
 | investigation | intake → method → findings → decision → closed |
-| incident | contain → timeline → recover → review → closed |
 
 Two things change a route:
 - A low-risk feature skips design.
@@ -27,7 +26,6 @@ The owner decides when an item leaves these stages:
 | diagnose | | | owner |
 | verify, into release | | owner | owner |
 | decision | | owner | owner |
-| review (incident) | owner | owner | owner |
 
 An item with no risk set is treated as high. `ignition check` re-checks
 every stage an item has passed: emptying an earlier record is a problem, and
@@ -72,8 +70,8 @@ Data model describes a change must also update
   the diagrams.
 - Give at least two real options, each with costs and failure modes.
   "Do nothing" counts if it's real.
-- Under Decision, say which option and why. A choice that affects the whole
-  product also gets `ignition decision`, linked here.
+- Under Decision, say which option and why. A choice that binds later work
+  is also stated in `architecture/overview.md`.
 - Under Impacts, cover data, security and privacy, migrations and
   compatibility, rollback, observability and cost. Write "none" where there
   is none.
@@ -219,13 +217,3 @@ evidence record; then Decision and Follow-up.
 **Do:** time-box the question. Every claim in Findings needs evidence. A
 production change the decision calls for gets its own work item, listed under
 Follow-up.
-
-## contain, timeline, recover, review (incident)
-
-**Record:** `brief.md`: Impact and Containment; then Timeline; then Recovery,
-with evidence of recovery; then Cause and Follow-up.
-**Owner decides** the review, at every risk level.
-**Do:** stop the impact first, and touch only what the project allows.
-Timeline entries are "time with zone · what happened · evidence". Recovery
-evidence is a real journey or data check. Cause separates facts from
-hypotheses, without blame. Follow-up lists the bugs and tasks you created.

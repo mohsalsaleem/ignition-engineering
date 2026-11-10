@@ -13,10 +13,9 @@ const (
 	Bug           Kind = "bug"
 	Task          Kind = "task"
 	Investigation Kind = "investigation"
-	Incident      Kind = "incident"
 )
 
-var Kinds = []Kind{Initiative, Feature, Bug, Task, Investigation, Incident}
+var Kinds = []Kind{Initiative, Feature, Bug, Task, Investigation}
 
 type Stage string
 
@@ -35,10 +34,6 @@ const (
 	Method    Stage = "method"
 	Findings  Stage = "findings"
 	Decide    Stage = "decision"
-	Contain   Stage = "contain"
-	Timeline  Stage = "timeline"
-	Recover   Stage = "recover"
-	Review    Stage = "review"
 	Closed    Stage = "closed"
 )
 
@@ -81,7 +76,6 @@ var routes = map[Kind][]Stage{
 	Bug:           {Intake, Reproduce, Diagnose, Build, Verify, Release, Closed},
 	Task:          {Intake, Plan, Build, Verify, Release, Closed},
 	Investigation: {Intake, Method, Findings, Decide, Closed},
-	Incident:      {Contain, Timeline, Recover, Review, Closed},
 }
 
 // Facts are the item attributes that change its route.
@@ -99,7 +93,7 @@ func ParseKind(s string) (Kind, error) {
 			return k, nil
 		}
 	}
-	return "", fmt.Errorf("unknown kind %q (one of initiative, feature, bug, task, investigation, incident)", s)
+	return "", fmt.Errorf("unknown kind %q (one of initiative, feature, bug, task, investigation)", s)
 }
 
 // Route is the ordered list of stages an item with these facts passes through.
@@ -295,14 +289,6 @@ func Exit(f Facts, s Stage) []Rule {
 		return []Rule{sections(BriefDoc, "Findings"), {Kind: EvidenceAny}}
 	case Decide:
 		return []Rule{sections(BriefDoc, "Decision", "Follow-up")}
-	case Contain:
-		return []Rule{sections(BriefDoc, "Impact", "Containment"), {Kind: Fields, Names: []string{"title", "risk"}}}
-	case Timeline:
-		return []Rule{sections(BriefDoc, "Timeline")}
-	case Recover:
-		return []Rule{sections(BriefDoc, "Recovery"), {Kind: EvidenceResult, Result: "pass"}}
-	case Review:
-		return []Rule{sections(BriefDoc, "Cause", "Follow-up")}
 	}
 	return nil
 }
@@ -324,8 +310,6 @@ func OwnerDecides(f Facts, s Stage) (bool, string) {
 		return true, "Is the evidence enough to release to users?"
 	case s == Decide && f.Risk.AtLeast(Normal):
 		return true, "Do you accept this decision and its follow-up?"
-	case s == Review:
-		return true, "Do you accept the incident review and its follow-up?"
 	}
 	return false, ""
 }

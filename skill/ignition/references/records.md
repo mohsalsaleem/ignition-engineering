@@ -10,7 +10,6 @@ are committed with the code they describe.
 ├── PROJECT.md              # owner, repositories, environments, commands, behaviour checks
 ├── AGENTS.md               # product-specific rules for agents
 ├── architecture/           # the system as it is now (see diagrams.md)
-├── decisions/D-….md        # product-wide decisions, referenced from many items
 └── work/W-20261027-k3f9q2/ # one folder per item, of any kind
     ├── brief.md            # kind, risk, size, stage | request, problem, outcome, criteria, result
     ├── design.md           # created on entering design
@@ -38,8 +37,8 @@ frontmatter between `---` lines: no nesting, lists or anchors. Sections are
 `## ` headings. Template guidance sits in `<!-- -->` comments and doesn't
 count as content: a section is filled when it has text beyond them.
 
-IDs are `<prefix>-<YYYYMMDD>-<6 random characters>`: W for work, E for
-evidence, D for decisions. Items link by ID.
+IDs are `<prefix>-<YYYYMMDD>-<6 random characters>`: W for work and E for
+evidence. Items link by ID.
 
 ## Evidence
 

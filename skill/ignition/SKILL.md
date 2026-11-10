@@ -1,6 +1,6 @@
 ---
 name: ignition
-description: Do engineering work through Ignition's staged work model. Work items (initiative, feature, bug, task, investigation, incident) move through stages such as shape, design, plan, build, verify and release. Each stage leaves written records and evidence, and the owner decides at checkpoints. Use when a repository has an `.ignition/` folder, when the user mentions Ignition or a work item ID like W-20261027-k3f9q2, or when the user asks to start, continue or hand off a task, feature, bug, initiative, investigation or incident under Ignition.
+description: Do engineering work through Ignition's staged work model. Work items (initiative, feature, bug, task, investigation) move through stages such as shape, design, plan, build, verify and release. Each stage leaves written records and evidence, and the owner decides at checkpoints. Use when a repository has an `.ignition/` folder, when the user mentions Ignition or a work item ID like W-20261027-k3f9q2, or when the user asks to start, continue or hand off a task, feature, bug, initiative or investigation under Ignition.
 compatibility: Requires the ignition CLI and git. Works with any agent that reads Agent Skills, including Claude Code, Codex, Cursor, Gemini CLI and GitHub Copilot.
 ---
 
@@ -64,7 +64,10 @@ ignition new <kind> "<one-line title>" --risk <low|normal|high> --size <small|me
 | bug | Existing behaviour is wrong |
 | task | Bounded work with a clear done condition: operations, refactoring, docs, upgrades |
 | investigation | A question must be answered before anyone can decide |
-| incident | Something broke or nearly broke in a live system |
+
+A live outage isn't a work item. Restore service the way the project says
+to, then open a bug for the fix and, if the cause is unclear, an
+investigation.
 
 **Risk** decides which stages apply and where the owner decides. Use **high**
 for auth, permissions, personal data, payments, AI decisions, schema or data
@@ -185,7 +188,6 @@ commit rules. A reviewer then sees the change and its evidence together.
 | The scope must change | `ignition log <ID> --type scope "..."`, then **stop and ask the owner** |
 | You checked something | `ignition evidence <ID> --claim ... --criteria <N,N> --result pass\|fail\|inconclusive --revision <sha> --environment ... --method ... --observed ... --limits ...` |
 | Build is done and the item needs QA | `ignition qa <ID>`, given to a fresh QA agent |
-| A choice affects the whole product | `ignition decision "<title>"`, then fill in the file it creates |
 | Your session is ending | `ignition log <ID> --type handoff "changed: ... verified: ... open: ..."` |
 | Someone asks who built something | `ignition attribution <ID>` (or no ID, for every item) |
 
