@@ -90,11 +90,6 @@ func (c *cli) qa(fs *flag.FlagSet, args []string) error {
 	if checks == "" {
 		p("\nPROJECT.md describes no behaviour checks. If proving this change meant driving\nthe app by hand or through a slow path, log a finding that says what a fast,\nheadless check would need.\n")
 	}
-	targets := workspace.Targets(it.Root)
-	if len(targets) > 0 {
-		p("\nTargets: %s. Verify needs passing evidence on each one; record each\ncheck with --target.\n", strings.Join(targets, ", "))
-	}
-
 	if on := it.OnBuild(); len(on) > 0 {
 		p("\n## Evidence already on %s\n\n", rev)
 		for _, e := range on {
@@ -112,10 +107,6 @@ func (c *cli) qa(fs *flag.FlagSet, args []string) error {
 		}
 	}
 
-	targetFlag := ""
-	if len(targets) > 0 {
-		targetFlag = " --target <" + strings.Join(targets, "|") + ">"
-	}
 	p(`
 ## How to work
 
@@ -143,7 +134,7 @@ Record everything as QA: pass --by qa, --model <your exact model ID>, and
 
    ignition evidence %[2]s --criteria <N[,N]> --claim "<what you checked>" \
      --result pass|fail|inconclusive --revision %[1]s \
-     --environment <where>%[3]s --method "<command, test or steps>" \
+     --environment <where> --method "<command, test or steps>" \
      --observed "<what you saw>" --limits "<what this doesn't show>" --by qa
 
    Name the criteria each check covers. A check that covers none (a
@@ -158,7 +149,7 @@ Record everything as QA: pass --by qa, --model <your exact model ID>, and
 7. Finish with a handoff naming what passed, what failed, and what you
    couldn't test:
    ignition log %[2]s --type handoff "verified: ... failed: ... untested: ..." --by qa
-`, rev, id, targetFlag)
+`, rev, id)
 	return nil
 }
 

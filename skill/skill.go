@@ -84,6 +84,10 @@ func Install(dir string) error {
 	if err != nil {
 		return err
 	}
+	// Drop an earlier version's reference files; some may no longer exist.
+	if err := os.RemoveAll(filepath.Join(dir, "references")); err != nil {
+		return err
+	}
 	for rel, b := range fsFiles {
 		path := filepath.Join(dir, filepath.FromSlash(rel))
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {

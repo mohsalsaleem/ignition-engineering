@@ -17,6 +17,23 @@ Two things change a route:
 - `release: none` in the brief's frontmatter skips release. Use it only when
   nothing ships to users, and log why.
 
+The owner decides when an item leaves these stages:
+
+| Leaving | Low | Normal | High |
+| --- | --- | --- | --- |
+| shape | | owner | owner |
+| design (initiative) | | owner | owner |
+| design (feature) | | | owner |
+| diagnose | | | owner |
+| verify, into release | | owner | owner |
+| decision | | owner | owner |
+| review (incident) | owner | owner | owner |
+
+An item with no risk set is treated as high. `ignition check` re-checks
+every stage an item has passed: emptying an earlier record is a problem, and
+the item can't move until it's fixed. A record written before a section was
+required isn't re-checked for that section, and neither is a passed verify.
+
 ## intake
 
 **Record:** `brief.md`: Request; `title`, `size` and `risk` set.
@@ -166,11 +183,6 @@ included. For a bug, the test that failed in reproduce must now pass. If QA
 finds a failure, fix it in this stage, log the `change`, and run QA again on
 the new revision. Then ask the owner whether the evidence is enough to
 release.
-
-**Targets.** If `PROJECT.md`'s frontmatter lists `targets` (say
-`targets: ios, android`), all of the above must hold on each target, from
-evidence recorded with `--target`. A pass that names no target counts for
-none. A failure that names no target counts against all.
 
 **Criteria** are the numbered lines of `brief.md`'s Acceptance criteria (a
 feature) or Done when (a task). Number them, or verify can't link evidence to

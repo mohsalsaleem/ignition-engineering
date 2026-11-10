@@ -1,9 +1,4 @@
----
-targets:
----
 # Project: {{.Product}}
-
-<!-- `targets` above: if the product ships on several platforms that must each be verified (for example `targets: ios, android`), list them. Verify then needs passing evidence on every one. Leave it empty otherwise. -->
 
 ## Owner
 

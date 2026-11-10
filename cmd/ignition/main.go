@@ -16,7 +16,8 @@ import (
 	"github.com/mohsalsaleem/ignition-engineering/skill"
 )
 
-var version = "0.10.0"
+// version is the release this source is; bump it here when tagging.
+const version = "0.10.0"
 
 const usage = `ignition: structured engineering work for people and agents.
 
@@ -37,7 +38,7 @@ Work
                                     move to the next stage once this one is complete
   log ID --type TYPE "TEXT"         TYPE: note finding decision change handoff scope
   evidence ID --claim C --result pass|fail|inconclusive --revision R --environment E --method M
-              [--criteria N,N] [--target T] [--observed O] [--limits L]
+              [--criteria N,N] [--observed O] [--limits L]
   qa ID                             the handoff for an independent QA agent: what to test, on which
                                     revision, and how to record it
   decision "TITLE"                  create a product-wide decision record
@@ -457,7 +458,6 @@ func (c *cli) evidence(fs *flag.FlagSet, args []string) error {
 	var in workspace.EvidenceInput
 	fs.StringVar(&in.Claim, "claim", "", "what was checked")
 	fs.StringVar(&in.Criteria, "criteria", "", "the acceptance criteria numbers it covers, e.g. 1,3")
-	fs.StringVar(&in.Target, "target", "", "the project target it was checked on, e.g. ios")
 	fs.StringVar(&in.Result, "result", "", "pass, fail or inconclusive")
 	fs.StringVar(&in.Revision, "revision", "", "commit, tag, digest or deployment ID")
 	fs.StringVar(&in.Environment, "environment", "", "where it was checked")

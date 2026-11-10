@@ -370,7 +370,6 @@ func (w *Workspace) Log(id, typ string, by Actor, text string) error {
 type EvidenceInput struct {
 	Claim, Result, Revision, Environment, Method, Observed, Limits string
 	Criteria                                                       string // acceptance criteria numbers, e.g. "1,3"
-	Target                                                         string // one of the project's targets, if it lists any
 	By                                                             Actor
 }
 
@@ -392,13 +391,6 @@ func (w *Workspace) AddEvidence(id string, in EvidenceInput) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	target := strings.TrimSpace(in.Target)
-	if targets := Targets(w.Root); target != "" && !slices.Contains(targets, target) {
-		if len(targets) == 0 {
-			return "", fmt.Errorf("target: PROJECT.md lists no targets (add `targets: a, b` to its frontmatter)")
-		}
-		return "", fmt.Errorf("target: %q isn't one of the project's targets (%s)", target, strings.Join(targets, ", "))
-	}
 	eid, err := w.NewID("E")
 	if err != nil {
 		return "", err
@@ -412,7 +404,7 @@ func (w *Workspace) AddEvidence(id string, in EvidenceInput) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	for k, v := range map[string]string{"claim": in.Claim, "criteria": criteria, "target": target, "revision": in.Revision, "environment": in.Environment, "method": in.Method,
+	for k, v := range map[string]string{"claim": in.Claim, "criteria": criteria, "revision": in.Revision, "environment": in.Environment, "method": in.Method,
 		"by": in.By.name(), "agent": in.By.Agent, "model": in.By.Model, "session": in.By.Session} {
 		d.Set(k, v)
 	}

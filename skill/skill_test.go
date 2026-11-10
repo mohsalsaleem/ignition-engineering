@@ -95,7 +95,7 @@ func TestInstall(t *testing.T) {
 	if err := Install(dir); err != nil {
 		t.Fatalf("reinstalling over the Ignition skill: %v", err)
 	}
-	for _, f := range []string{"SKILL.md", "references/stages.md", "references/commands.md"} {
+	for _, f := range []string{"SKILL.md", "references/stages.md", "references/records.md"} {
 		if _, err := os.Stat(filepath.Join(dir, f)); err != nil {
 			t.Error(err)
 		}
