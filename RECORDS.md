@@ -9,8 +9,8 @@ history of what was asked, decided, built and proven.
 
 ```text
 .ignition/
-├── PROJECT.md              # owner, repositories, environments, commands, boundaries
-├── AGENTS.md               # product-specific rules for agents
+├── PROJECT.md              # owner, repositories, environments, commands, behaviour checks, targets
+├── AGENTS.md               # product-specific rules for agents, and the project's skills
 ├── architecture/           # the system as it is now, updated by the work that changes it
 │   ├── overview.md         # context, containers, trust boundaries
 │   ├── data-model.md       # the agreed data model, updated in design
@@ -75,7 +75,11 @@ Every evidence record names:
 - the environment;
 - the method: command, test or steps;
 - optionally, `criteria`: the numbers of the acceptance criteria it covers,
-  such as `1,3`. Verify needs a pass for each one.
+  such as `1,3`. Verify needs a pass for each one;
+- optionally, `target`: one of the targets `PROJECT.md` lists. Verify then
+  needs each criterion to pass on every target.
+
+Make the method a command someone else can run again on that revision.
 
 Its result is pass, fail or inconclusive. A failing check is evidence too;
 record it rather than retrying until green. "Merged", "deployed" or "returns

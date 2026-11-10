@@ -76,6 +76,11 @@ only when QA evidence passes every numbered acceptance criterion on the
 revision the latest `change` names, with no failure since. A fix moves the
 revision, so QA runs again. See [WORK_MODEL.md](WORK_MODEL.md#verification).
 
+Verification is only as fast as the product's checks. `PROJECT.md` describes
+its behaviour checks (how to prove behaviour without a UI or a person
+watching), and the QA agent is given them. A product that ships on several
+platforms lists them as `targets`, and verify must pass on each.
+
 ## For agents
 
 Ignition ships an agent skill, [skill/ignition](skill/ignition/SKILL.md),

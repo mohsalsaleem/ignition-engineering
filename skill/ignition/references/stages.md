@@ -60,8 +60,12 @@ Data model describes a change must also update
 - Under Impacts, cover data, security and privacy, migrations and
   compatibility, rollback, observability and cost. Write "none" where there
   is none.
-- Under Test strategy, say which tests prove each criterion and each failure
-  path.
+- Under Test strategy, name the test that proves each numbered criterion and
+  each failure path, and the command that runs it. Prefer behaviour tests:
+  the real logic, driven by actions and checked by state, with test data at
+  the edges and no real network. Keep unit tests for tricky pure logic and
+  end-to-end tests for a few journeys. Say what the tests can't see, such
+  as UI wiring, and how that is checked.
 - When required, the detailed design. Write what a reviewer needs to judge
   the change before it's built, not a copy of the code. Write
   "none: <why>" in a section where nothing changes.
@@ -73,7 +77,9 @@ Data model describes a change must also update
     `architecture/data-model.md` too, naming this item, so the owner approves
     the model now rather than finding it in a migration later.
   - Flows: a `sequenceDiagram` per key flow, with at least one failure path;
-    retries, timeouts, idempotency, and where the change commits.
+    retries, timeouts, idempotency, and where the change commits. Write each
+    step as an action and the state it leaves, so each step is something a
+    test can assert.
   - Errors: what fails, what the user or caller sees, what's retried, and
     what's logged or alerted.
 - If the change adds or reconnects components, or changes an important
@@ -160,6 +166,11 @@ included. For a bug, the test that failed in reproduce must now pass. If QA
 finds a failure, fix it in this stage, log the `change`, and run QA again on
 the new revision. Then ask the owner whether the evidence is enough to
 release.
+
+**Targets.** If `PROJECT.md`'s frontmatter lists `targets` (say
+`targets: ios, android`), all of the above must hold on each target, from
+evidence recorded with `--target`. A pass that names no target counts for
+none. A failure that names no target counts against all.
 
 **Criteria** are the numbered lines of `brief.md`'s Acceptance criteria (a
 feature) or Done when (a task). Number them, or verify can't link evidence to

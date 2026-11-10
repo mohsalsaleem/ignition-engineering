@@ -238,15 +238,26 @@ func TestQAHandoffThroughTheCLI(t *testing.T) {
 	ignition(t, dir, "log", id, "--type", "change", "a1b2c3d adds logrotate")
 	ignition(t, dir, "advance", id)
 
+	out, _ = ignition(t, dir, "qa", id)
+	if !strings.Contains(out, "PROJECT.md describes no behaviour checks") {
+		t.Fatalf("qa without behaviour checks:\n%s", out)
+	}
+	project := filepath.Join(dir, "PROJECT.md")
+	b, _ = os.ReadFile(project)
+	b = bytes.Replace(b, []byte("targets:"), []byte("targets: linux"), 1)
+	b = bytes.Replace(b, []byte("## Behaviour checks\n"), []byte("## Behaviour checks\n\n`make behaviour` runs in 20 seconds.\n"), 1)
+	os.WriteFile(project, b, 0o644)
+
 	out, code := ignition(t, dir, "qa", id)
-	for _, want := range []string{"Revision to test: a1b2c3d", "1. Logs rotate daily.", "criterion 2 has no QA evidence", "--by qa"} {
+	for _, want := range []string{"Revision to test: a1b2c3d", "1. Logs rotate daily.", "criterion 2 has no QA evidence", "--by qa",
+		"`make behaviour` runs in 20 seconds.", "Targets: linux", "--target <linux>"} {
 		if code != 0 || !strings.Contains(out, want) {
 			t.Fatalf("qa: %d, missing %q\n%s", code, want, out)
 		}
 	}
 	var buf bytes.Buffer
 	if code := run([]string{"evidence", id, "--criteria", "1,2", "--claim", "Rotation and retention", "--result", "pass",
-		"--revision", "a1b2c3d", "--environment", "local", "--method", "qa/rotate_test.sh", "--dir", dir, "--by", "qa"}, &buf, &buf); code != 0 {
+		"--revision", "a1b2c3d", "--environment", "local", "--target", "linux", "--method", "qa/rotate_test.sh", "--dir", dir, "--by", "qa"}, &buf, &buf); code != 0 {
 		t.Fatalf("qa evidence: %d\n%s", code, buf.String())
 	}
 	if out, _ := ignition(t, dir, "status"); !strings.Contains(out, "waits for the owner") {

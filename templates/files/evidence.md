@@ -3,6 +3,7 @@ id: {{.ID}}
 work: {{.Work}}
 claim: {{.Claim}}
 criteria:
+target:
 result: {{.Result}}
 revision: {{.Revision}}
 environment: {{.Environment}}

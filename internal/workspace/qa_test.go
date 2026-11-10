@@ -130,3 +130,48 @@ func TestBuildRevisionIsTheFirstCommitInTheChangeEntry(t *testing.T) {
 		}
 	}
 }
+
+// A product that lists targets must pass on every one: passing on one
+// platform isn't passing.
+func TestVerifyNeedsEveryProjectTarget(t *testing.T) {
+	w := newWorkspace(t)
+	tick(w)
+	path := filepath.Join(w.Root, "PROJECT.md")
+	b, _ := os.ReadFile(path)
+	os.WriteFile(path, []byte(strings.Replace(string(b), "targets:", "targets: ios, android", 1)), 0o644)
+	if got := Targets(w.Root); len(got) != 2 || got[0] != "ios" || got[1] != "android" {
+		t.Fatalf("Targets = %v", got)
+	}
+	it := buildTask(t, w, "low")
+	on := func(target, criteria, result string) error {
+		_, err := w.AddEvidence(it.ID, EvidenceInput{Claim: "Logs rotate", Criteria: criteria, Target: target, Result: result,
+			Revision: "a1b2c3d", Environment: "ci", Method: "make behaviour", By: agent})
+		return err
+	}
+	if err := on("web", "1,2", "pass"); err == nil || !strings.Contains(err.Error(), "isn't one of the project's targets") {
+		t.Fatalf("evidence on an unknown target: %v", err)
+	}
+	if err := on("", "1,2", "pass"); err != nil { // names no target, so it counts for none
+		t.Fatal(err)
+	}
+	mustFail(t, w, it.ID, nil, ErrNotReady, "criterion 1 has no evidence on a1b2c3d for target ios")
+	if err := on("ios", "1,2", "pass"); err != nil {
+		t.Fatal(err)
+	}
+	mustFail(t, w, it.ID, nil, ErrNotReady, "criterion 2 has no evidence on a1b2c3d for target android")
+	if err := on("android", "1,2", "pass"); err != nil {
+		t.Fatal(err)
+	}
+	if err := on("", "2", "fail"); err != nil { // a failure with no target counts against all
+		t.Fatal(err)
+	}
+	mustFail(t, w, it.ID, nil, ErrNotReady, "criterion 2 failed on a1b2c3d for target ios")
+	for _, target := range []string{"ios", "android"} {
+		if err := on(target, "2", "pass"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if s := advance(t, w, it.ID, nil); s != model.Release {
+		t.Fatalf("after verify: %s", s)
+	}
+}

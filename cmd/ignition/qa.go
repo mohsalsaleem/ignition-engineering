@@ -77,6 +77,24 @@ func (c *cli) qa(fs *flag.FlagSet, args []string) error {
 		}
 	}
 
+	p("\n## How this project is tested (PROJECT.md)\n")
+	checks := workspace.ProjectSection(it.Root, "Behaviour checks")
+	for _, s := range []struct{ name, text string }{
+		{"Commands", workspace.ProjectSection(it.Root, "Commands")},
+		{"Behaviour checks", checks},
+	} {
+		if s.text != "" {
+			p("\n%s:\n%s\n", s.name, s.text)
+		}
+	}
+	if checks == "" {
+		p("\nPROJECT.md describes no behaviour checks. If proving this change meant driving\nthe app by hand or through a slow path, log a finding that says what a fast,\nheadless check would need.\n")
+	}
+	targets := workspace.Targets(it.Root)
+	if len(targets) > 0 {
+		p("\nTargets: %s. Verify needs passing evidence on each one; record each\ncheck with --target.\n", strings.Join(targets, ", "))
+	}
+
 	if on := it.OnBuild(); len(on) > 0 {
 		p("\n## Evidence already on %s\n\n", rev)
 		for _, e := range on {
@@ -94,6 +112,10 @@ func (c *cli) qa(fs *flag.FlagSet, args []string) error {
 		}
 	}
 
+	targetFlag := ""
+	if len(targets) > 0 {
+		targetFlag = " --target <" + strings.Join(targets, "|") + ">"
+	}
 	p(`
 ## How to work
 
@@ -108,9 +130,11 @@ Record everything as QA: pass --by qa, --model <your exact model ID>, and
    uncommitted changes.
 2. Read the criteria, then the code and the existing tests. Decide how you'd
    show each criterion holds, including its failure paths.
-3. Prefer automated checks: run the project's test suite, and write the tests
-   that are missing (unit, integration, end-to-end, or driving the running
-   app). Commit tests you write on their own branch, and say so in --method.
+3. Prefer automated behaviour checks: tests that drive the real logic with
+   actions and assert on the resulting state, with test data at the edges and
+   no real network or mocks of the code under test. Run the project's suite,
+   and write the tests that are missing. Commit tests you write on their own
+   branch, and say so in --method.
 4. Exercise the change the way a user or caller would, beyond the happy path:
    bad input, permissions, empty and large data, concurrency, rollback. Test
    every failure path in the design's Flows and Errors. If the data changed,
@@ -119,11 +143,13 @@ Record everything as QA: pass --by qa, --model <your exact model ID>, and
 
    ignition evidence %[2]s --criteria <N[,N]> --claim "<what you checked>" \
      --result pass|fail|inconclusive --revision %[1]s \
-     --environment <where> --method "<command, test or steps>" \
+     --environment <where>%[3]s --method "<command, test or steps>" \
      --observed "<what you saw>" --limits "<what this doesn't show>" --by qa
 
    Name the criteria each check covers. A check that covers none (a
-   regression, a crash) leaves out --criteria.
+   regression, a crash) leaves out --criteria. Make --method a command
+   someone else can run again on this revision, and use --limits for what
+   the check can't see, such as how the UI is wired to the logic.
 6. Don't fix the product code, and don't change the brief, design or plan. A
    problem you find is a fail record plus a finding:
    ignition log %[2]s --type finding "<what fails, how to reproduce>" --by qa
@@ -132,7 +158,7 @@ Record everything as QA: pass --by qa, --model <your exact model ID>, and
 7. Finish with a handoff naming what passed, what failed, and what you
    couldn't test:
    ignition log %[2]s --type handoff "verified: ... failed: ... untested: ..." --by qa
-`, rev, id)
+`, rev, id, targetFlag)
 	return nil
 }
 

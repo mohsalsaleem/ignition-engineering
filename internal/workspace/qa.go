@@ -2,6 +2,8 @@ package workspace
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"sort"
@@ -120,11 +122,36 @@ func (it *Item) OnBuild() []*record.Doc {
 // unverified lists what keeps the item's verification from holding. The
 // latest evidence for a criterion, or for a claim, is what counts: a failure
 // recorded after a pass reopens it.
+//
+// A product that lists targets in PROJECT.md (platforms it ships on, say) must
+// verify on each: passing on one isn't passing.
 func (it *Item) unverified(independent bool) []string {
 	rev := it.BuildRevision()
 	if rev == "" {
 		return []string{fmt.Sprintf("log: the latest change entry names no commit (log it as `ignition log %s --type change \"<sha> <what>\"`)", it.ID)}
 	}
+	targets := Targets(it.Root)
+	if len(targets) == 0 {
+		return it.unverifiedOn(it.OnBuild(), rev, independent)
+	}
+	var out []string
+	for _, t := range targets {
+		var on []*record.Doc
+		for _, e := range it.OnBuild() {
+			// A failure that names no target counts against every target.
+			if et := e.Get("target"); et == t || et == "" && e.Get("result") == "fail" {
+				on = append(on, e)
+			}
+		}
+		out = append(out, it.unverifiedOn(on, rev+" for target "+t, independent)...)
+	}
+	return out
+}
+
+// unverifiedOn applies the verify rules to evidence, all of it on the build
+// revision. where names that revision, and the target if there is one.
+func (it *Item) unverifiedOn(evidence []*record.Doc, where string, independent bool) []string {
+	rev := where
 	qa, hint := "evidence", ""
 	if independent {
 		qa = "QA evidence"
@@ -137,7 +164,7 @@ func (it *Item) unverified(independent bool) []string {
 		latestQA  = map[string]*record.Doc{} // the same, independent evidence only
 		anyPassQA bool
 	)
-	for _, e := range it.OnBuild() {
+	for _, e := range evidence {
 		keys := evidenceCriteria(e)
 		for i := range keys {
 			keys[i] = "criterion " + keys[i]
@@ -210,4 +237,44 @@ func criteriaNums(cs []Criterion) string {
 		out = append(out, c.Num)
 	}
 	return strings.Join(out, ", ")
+}
+
+// project reads the workspace's PROJECT.md, or nil if it can't be read.
+func project(root string) *record.Doc {
+	b, err := os.ReadFile(filepath.Join(root, "PROJECT.md"))
+	if err != nil {
+		return nil
+	}
+	d, err := record.Parse(string(b))
+	if err != nil {
+		return nil
+	}
+	return d
+}
+
+// Targets are what the product must be verified on, from `targets:` in
+// PROJECT.md's frontmatter: its platforms, say `ios, android`. Most products
+// list none.
+func Targets(root string) []string {
+	d := project(root)
+	if d == nil {
+		return nil
+	}
+	var out []string
+	for _, t := range strings.Split(d.Get("targets"), ",") {
+		if t = strings.TrimSpace(t); t != "" && !slices.Contains(out, t) {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
+// ProjectSection returns a section of the workspace's PROJECT.md, or "".
+func ProjectSection(root, name string) string {
+	d := project(root)
+	if d == nil {
+		return ""
+	}
+	s, _ := d.Section(name)
+	return s
 }

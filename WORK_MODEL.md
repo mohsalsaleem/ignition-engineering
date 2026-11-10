@@ -129,6 +129,17 @@ evidence recorded by someone other than whoever logged the changes (a
 different name, or the same name in a different session). Failures count
 whoever records them. Low-risk work may verify itself.
 
+A product that ships on several platforms lists them as `targets` in
+`PROJECT.md`'s frontmatter (`targets: ios, android`). Verify must then hold
+on every target, from evidence recorded with `--target`: passing on one
+isn't passing.
+
+Verify is only as good as the checks a project has. `PROJECT.md` describes
+its **behaviour checks**: how to prove behaviour against the real logic
+without a UI, a device or a person watching. `ignition qa` gives that to the
+QA agent. A design's Test strategy names the test that proves each criterion,
+and an evidence method should be a command anyone can run again.
+
 A fix made during verify is a new `change`, so it moves the build revision:
 QA runs again, and evidence on the old revision no longer counts. The item
 stays in verify; it doesn't go back to build.

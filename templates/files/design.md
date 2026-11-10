@@ -40,6 +40,7 @@ Also update .ignition/architecture/data-model.md to the agreed model, naming thi
 
 <!-- Required for medium and large features, and for high risk. Otherwise optional.
 Each key flow as a Mermaid sequenceDiagram, one per flow, including at least one failure path. Under each: retries, timeouts, idempotency, and where the change commits.
+Write each step as an action and the state it leaves: what the user or caller does, then what they can observe. Each step is then something a test can assert.
 -->
 
 ## Errors
@@ -53,4 +54,5 @@ What can fail, what the user or caller sees, what is retried, and what is logged
 
 ## Test strategy
 
-<!-- Which tests prove the acceptance criteria and failure paths, at which level. Each failure path in Flows needs a test. -->
+<!-- For each numbered acceptance criterion: the test that proves it, and the command that runs it. Each failure path in Flows needs a test.
+Prefer behaviour tests: the real logic, driven by actions and checked by state, with test data at the edges and no real network. Keep unit tests for tricky pure logic and end-to-end tests for a few journeys. Say what the tests don't cover, such as UI wiring, and how that is checked. -->

@@ -23,8 +23,8 @@ session. `ignition whoami` shows what will be recorded.
 | `ignition new KIND "TITLE" --risk R --size S [--parent ID]` | Creates an item in its first stage. A child (`--parent`) can only be created once the initiative's solution design is done |
 | `ignition advance ID [--owner NAME --decision "TEXT"]` | Moves to the next stage, creating its record file. The owner flags record a checkpoint decision. |
 | `ignition log ID --type TYPE "TEXT"` | Appends to the log. TYPE is one of note, finding, decision, change, handoff, scope. |
-| `ignition evidence ID --claim C --result R --revision V --environment E --method M [--criteria N,N] [--observed O] [--limits L]` | Records evidence; R is one of pass, fail, inconclusive. `--criteria` names the acceptance criteria it covers |
-| `ignition qa ID` | Prints the handoff for an independent QA agent: the revision to test, the criteria, the test strategy, what verify still needs, and how to record evidence |
+| `ignition evidence ID --claim C --result R --revision V --environment E --method M [--criteria N,N] [--target T] [--observed O] [--limits L]` | Records evidence; R is one of pass, fail, inconclusive. `--criteria` names the acceptance criteria it covers. `--target` names the project target it was checked on, when `PROJECT.md` lists targets |
+| `ignition qa ID` | Prints the handoff for an independent QA agent: the revision to test, the criteria, the design, how the project is tested (its commands, behaviour checks and targets), what verify still needs, and how to record evidence |
 | `ignition decision "TITLE"` | Creates a product-wide decision record in `decisions/` |
 | `ignition check [ID]` | Reports problems in the records; exits 1 if there are any |
 | `ignition attribution [ID]` | Who built what: each person, agent and model, their entries, commits and sessions; owner decisions |
@@ -48,6 +48,8 @@ session. `ignition whoami` shows what will be recorded.
 | `criterion N failed on <sha>` | Fix it, commit, log the `change`, and run QA again on the new revision. |
 | `the latest change entry names no commit` | Log your commit as `ignition log ID --type change "<sha> <what>"`. |
 | `architecture/data-model.md: the design changes the data model; …` | Write the agreed model into `.ignition/architecture/data-model.md` and name the item next to what it changed. If nothing changes, write "none: <why>" under Data model. |
+| `criterion N has no QA evidence on <sha> for target T` | The project lists targets. Record a pass on each one with `--target T`. |
+| `target: "T" isn't one of the project's targets` | Use a target from `PROJECT.md`'s `targets:`, or leave `--target` out if it lists none. |
 | `criteria: "N" isn't one of …` | Use the numbers of the brief's acceptance criteria. |
 | `log: no change entry` | Record your commit with `ignition log ID --type change`. |
 | ``stage entries are written by `ignition advance` `` (or checkpoint) | You can't log these directly. Use `advance`. |

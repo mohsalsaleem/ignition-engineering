@@ -31,7 +31,9 @@ that a new session can continue from the records alone.
    the records kept separately (`ignition attach`). Never create another
    repository on your own.
 3. Read the workspace's `PROJECT.md` and `AGENTS.md`. Their rules, commands
-   and boundaries apply to everything below.
+   and boundaries apply to everything below. Use the project's own skills
+   where `AGENTS.md` names them, and its behaviour checks where `PROJECT.md`
+   describes them.
 4. Identify yourself, so the records show which agent and model did the work.
    Run `ignition whoami --model <your exact model ID>`. If it doesn't show
    your agent tool, add `--agent <tool>` (claude-code, codex, cursor,
@@ -172,6 +174,30 @@ failure reopens it.
 At low risk you may verify your own work, with the same criteria and revision
 rules.
 
+If `PROJECT.md` lists `targets` (platforms the product ships on), every
+criterion needs a pass on each one, recorded with `--target`. Passing on one
+platform isn't passing.
+
+## Make behaviour cheap to prove
+
+An agent can write a change in minutes. Proving it works is the slow part,
+and verify is only as good as the checks the project has.
+- **Behaviour checks.** The best check drives the real logic with actions and
+  asserts on the resulting state, without a UI, device or browser, with test
+  data at the edges and no real network. `PROJECT.md` says how to run them
+  under "Behaviour checks", and `ignition qa` passes that on. If the section
+  is empty and you work out how, fill it in. If the product has no such
+  check and proving your change was slow or manual, log a finding and
+  propose a task to build one. Don't build it inside an unrelated item.
+- **Criteria map to tests.** In the design's Test strategy, name the test
+  that proves each numbered criterion and the command that runs it. Make an
+  evidence `--method` a command someone else can run again on that revision.
+- **Skills, not docs.** When you learn how to run, drive or test this
+  product, and it took more than reading a README, write it as a project
+  skill (`.claude/skills/` or `.agents/skills/`) and list it in `AGENTS.md`
+  under Skills. The next agent then runs it instead of rediscovering it. Tell
+  the user you added it.
+
 ## Committing the records
 
 The records are part of the change. Commit `.ignition/` changes in the same
@@ -192,7 +218,7 @@ commit rules. A reviewer then sees the change and its evidence together.
 | You made a choice inside the agreed scope | `ignition log <ID> --type decision "..."` |
 | You committed a change | `ignition log <ID> --type change "<sha> <what and why>"` |
 | The scope must change | `ignition log <ID> --type scope "..."`, then **stop and ask the owner** |
-| You checked something | `ignition evidence <ID> --claim ... --criteria <N,N> --result pass\|fail\|inconclusive --revision ... --environment ... --method ... --observed ... --limits ...` |
+| You checked something | `ignition evidence <ID> --claim ... --criteria <N,N> [--target T] --result pass\|fail\|inconclusive --revision ... --environment ... --method ... --observed ... --limits ...` |
 | Build is done and the item needs QA | `ignition qa <ID>`, given to a fresh QA agent |
 | A choice affects the whole product | `ignition decision "<title>"`, then fill in the file it creates |
 | Your session is ending | `ignition log <ID> --type handoff "changed: ... verified: ... open: ..."` |
