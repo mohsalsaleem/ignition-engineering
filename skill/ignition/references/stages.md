@@ -217,3 +217,15 @@ evidence record; then Decision and Follow-up.
 **Do:** time-box the question. Every claim in Findings needs evidence. A
 production change the decision calls for gets its own work item, listed under
 Follow-up.
+
+**After an outage.** Restore service first, the way the project says to.
+Ignition doesn't gate that. Then record it as two items:
+- A **bug** for the fix, at the risk the affected area carries. Its
+  reproduce evidence is the failure as it was seen; its verify evidence
+  shows it fixed.
+- A high-risk **investigation**: "What happened on <date>, and why wasn't
+  it caught?" Findings hold the impact (who, how, since when, and what is
+  still unknown), the timeline (time with zone · what happened or was done ·
+  evidence), what restored service with evidence that it is restored, and
+  the cause, with facts kept apart from hypotheses and no blame. The owner
+  accepts the Decision. Follow-up lists the bug and every task it led to.

@@ -66,8 +66,8 @@ ignition new <kind> "<one-line title>" --risk <low|normal|high> --size <small|me
 | investigation | A question must be answered before anyone can decide |
 
 A live outage isn't a work item. Restore service the way the project says
-to, then open a bug for the fix and, if the cause is unclear, an
-investigation.
+to, then open a bug for the fix and an investigation for the review. See
+"After an outage" in [references/stages.md](references/stages.md).
 
 **Risk** decides which stages apply and where the owner decides. Use **high**
 for auth, permissions, personal data, payments, AI decisions, schema or data
