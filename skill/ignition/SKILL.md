@@ -80,7 +80,9 @@ desktop), add `release: app` to the brief's frontmatter. The owner then
 decides before every release, at any risk, because an installed build can't
 be recalled. The release record also asks for each build, the rollout, and
 compatibility with older builds. See "An app" in
-[references/stages.md](references/stages.md).
+[references/stages.md](references/stages.md), and
+[references/mobile.md](references/mobile.md) for how to set up, design,
+build, verify and release an app.
 
 **Size** says whether to split the work. Large work usually means an
 initiative with child items (`--parent <ID>`).
@@ -219,4 +221,7 @@ commit rules. A reviewer then sees the change and its evidence together.
   format, and the rules for evidence.
 - [references/diagrams.md](references/diagrams.md): the architecture docs,
   agreeing the data model, and Mermaid diagrams.
+- [references/mobile.md](references/mobile.md): apps people install (iOS,
+  Android, desktop): project setup, design, verification on release builds
+  and screens, store releases.
 - `ignition help`: every command and flag.
