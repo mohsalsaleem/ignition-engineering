@@ -232,6 +232,9 @@ testing track. It isn't a deployment you can roll back. So:
   or the testing track, on a real device. Then run the journey. A simulator
   or a local build doesn't count.
 
+How to set an app project up for this, and what to check in each stage, is
+in [mobile.md](mobile.md).
+
 Uploading and publishing need credentials only the owner should hold. Use
 the project's release route (`PROJECT.md`, Environments), never a shortcut
 around its checks.
