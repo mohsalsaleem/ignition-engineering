@@ -64,6 +64,12 @@ ignition check
 - **The data model is agreed in design.** A design that changes the data
   writes the agreed model into `.ignition/architecture/data-model.md` before
   it can leave design, so the owner approves it before any migration exists.
+- **Apps are released as builds, not deployments.** An item with
+  `release: app` (iOS, Android, desktop) stops for the owner before every
+  release, at any risk. Its release record names each build and store track,
+  the rollout and how to halt it, and which older builds the server must
+  still serve. Production verification is on a real device, installed the
+  way people get it.
 - **The builder doesn't verify its own work.** `ignition qa <ID>` prints a
   handoff for a fresh QA agent. At normal and high risk, verify completes
   only when evidence from someone other than the builder passes every

@@ -438,3 +438,77 @@ func TestAttribution(t *testing.T) {
 		t.Errorf("evidence attribution: agent %q model %q by %q", e.Get("agent"), e.Get("model"), e.Get("by"))
 	}
 }
+
+// setField adds or replaces a frontmatter field in the brief.
+func setField(t *testing.T, it *Item, field, value string) {
+	t.Helper()
+	path := filepath.Join(it.Dir, "brief.md")
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := strings.Replace(string(b), "\nrisk:", "\n"+field+": "+value+"\nrisk:", 1)
+	if err := os.WriteFile(path, []byte(text), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// An app build can't be recalled once it's on people's devices, so even a
+// low-risk fix stops for the owner, and its release records each build, the
+// rollout and the older builds still in use.
+func TestAnAppReleaseStopsForTheOwnerAndRecordsTheBuilds(t *testing.T) {
+	w := newWorkspace(t)
+	it, err := w.NewItem(model.Bug, "Title cut off under the header", "low", "small", "", agent)
+	if err != nil {
+		t.Fatal(err)
+	}
+	setField(t, it, "release", "app")
+	fill(t, it, "brief.md", "Request", "The page title is clipped on iPhone.")
+	advance(t, w, it.ID, nil)
+	fill(t, it, "brief.md", "Expected and actual", "Expected the whole title; the header covers it.")
+	fill(t, it, "brief.md", "Reproduction", "Open any tab on an iPhone 17.")
+	if _, err := w.AddEvidence(it.ID, EvidenceInput{Claim: "The title is whole", Result: "fail",
+		Revision: "a1b2c3d", Environment: "simulator", Method: "UI test screenshot", By: agent}); err != nil {
+		t.Fatal(err)
+	}
+	advance(t, w, it.ID, nil)
+	fill(t, it, "brief.md", "Root cause", "The header is laid over the page.")
+	advance(t, w, it.ID, nil)
+	if err := w.Log(it.ID, "change", agent, "Commit b2c3d4e puts the header above the page."); err != nil {
+		t.Fatal(err)
+	}
+	advance(t, w, it.ID, nil)
+	if _, err := w.AddEvidence(it.ID, EvidenceInput{Claim: "The title is whole", Result: "pass",
+		Revision: "b2c3d4e", Environment: "simulator, release build", Method: "UI test screenshot", By: agent}); err != nil {
+		t.Fatal(err)
+	}
+	mustFail(t, w, it.ID, nil, ErrNeedsOwner, "can't be recalled")
+	if s := advance(t, w, it.ID, &Checkpoint{Owner: "owner", Decision: "Ship to TestFlight."}); s != model.Release {
+		t.Fatalf("after verify: %s", s)
+	}
+	b, err := os.ReadFile(filepath.Join(it.Dir, "release.md"))
+	if err != nil || !strings.Contains(string(b), "## Builds") {
+		t.Fatalf("an app's release.md wasn't created from the app template: %v", err)
+	}
+	for _, s := range []string{"Revision", "Builds", "Checks", "Rollout", "Rollback", "Production verification"} {
+		fill(t, it, "release.md", s, "Done.")
+	}
+	mustFail(t, w, it.ID, nil, ErrNotReady, `fill in "Compatibility"`)
+	fill(t, it, "release.md", "Compatibility", "No API change; builds 30 and up keep working.")
+	if s := advance(t, w, it.ID, nil); s != model.Closed {
+		t.Fatalf("after release: %s", s)
+	}
+}
+
+func TestAnUnknownReleaseIsAProblem(t *testing.T) {
+	w := newWorkspace(t)
+	it, err := w.NewItem(model.Task, "Upgrade the SDK", "low", "small", "", agent)
+	if err != nil {
+		t.Fatal(err)
+	}
+	setField(t, it, "release", "apps")
+	it, _ = w.Load(it.ID)
+	if got := strings.Join(it.Check(), "\n"); !strings.Contains(got, `release "apps" is not none or app`) {
+		t.Errorf("Check() = %q", got)
+	}
+}

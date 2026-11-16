@@ -306,7 +306,11 @@ func (c *cli) printBrief(w *workspace.Workspace, id string) error {
 	if size == "" {
 		size = "unset"
 	}
-	fmt.Fprintf(c.out, "\n%s · %s · %s risk · %s\n%s\n", it.ID, f.Kind, risk, size, it.Title())
+	ships := ""
+	if f.App {
+		ships = " · app release"
+	}
+	fmt.Fprintf(c.out, "\n%s · %s · %s risk · %s%s\n%s\n", it.ID, f.Kind, risk, size, ships, it.Title())
 	if p := it.Brief.Get("parent"); p != "" {
 		fmt.Fprintf(c.out, "Part of %s\n", p)
 	}

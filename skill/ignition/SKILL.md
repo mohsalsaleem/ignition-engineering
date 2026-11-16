@@ -75,6 +75,13 @@ migrations, infrastructure, and release or install tooling. Use **normal** for
 user-facing behaviour, and **low** for copy, docs and isolated presentation.
 When unsure, choose the higher level. Never lower risk to skip a stage.
 
+**Apps.** If the work ships in an app people install (iOS, Android,
+desktop), add `release: app` to the brief's frontmatter. The owner then
+decides before every release, at any risk, because an installed build can't
+be recalled. The release record also asks for each build, the rollout, and
+compatibility with older builds. See "An app" in
+[references/stages.md](references/stages.md).
+
 **Size** says whether to split the work. Large work usually means an
 initiative with child items (`--parent <ID>`).
 

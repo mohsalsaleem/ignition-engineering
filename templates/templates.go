@@ -25,14 +25,17 @@ func Render(name string, data any) (string, error) {
 	return b.String(), nil
 }
 
-// Name is the template an artifact of an item of kind k is created from. Each
-// kind has its own brief, and an initiative's design is a solution design.
-func Name(a model.Artifact, k model.Kind) string {
+// Name is the template an artifact of an item with facts f is created from.
+// Each kind has its own brief, an initiative's design is a solution design,
+// and an app's release has its own record.
+func Name(a model.Artifact, f model.Facts) string {
 	switch {
 	case a == model.BriefDoc:
-		return "brief-" + string(k) + ".md"
-	case a == model.DesignDoc && k == model.Initiative:
+		return "brief-" + string(f.Kind) + ".md"
+	case a == model.DesignDoc && f.Kind == model.Initiative:
 		return "design-initiative.md"
+	case a == model.ReleaseDoc && f.App:
+		return "release-app.md"
 	}
 	return string(a)
 }

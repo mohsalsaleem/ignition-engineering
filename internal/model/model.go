@@ -49,6 +49,11 @@ var Risks = []Risk{Low, Normal, High}
 
 var Sizes = []string{"small", "medium", "large"}
 
+// Releases are the values of the brief's `release` field. Unset means the
+// project's usual route (a deployment); none skips release; app is a build
+// people install from a store or a testing track.
+var Releases = []string{"none", "app"}
+
 func (r Risk) rank() int {
 	switch r {
 	case Low:
@@ -84,6 +89,7 @@ type Facts struct {
 	Risk      Risk
 	Size      string
 	NoRelease bool // the brief says `release: none`: nothing ships to users
+	App       bool // the brief says `release: app`: it ships in an app people install (iOS, Android, desktop)
 	Child     bool // the item belongs to an initiative
 }
 
@@ -274,6 +280,12 @@ func Exit(f Facts, s Stage) []Rule {
 	case Verify:
 		return []Rule{{Kind: Verified, Independent: IndependentQA(f)}}
 	case Release:
+		if f.App {
+			// An installed app can't be pulled back like a deployment: each
+			// build on each store, who gets it, and the older builds still in
+			// use must be written down.
+			return []Rule{sections(ReleaseDoc, "Revision", "Builds", "Checks", "Rollout", "Compatibility", "Rollback", "Production verification")}
+		}
 		return []Rule{sections(ReleaseDoc, "Revision", "Checks", "Rollback", "Production verification")}
 	case Observe:
 		return []Rule{sections(BriefDoc, "Result")}
@@ -306,6 +318,10 @@ func OwnerDecides(f Facts, s Stage) (bool, string) {
 		return true, "Is this the right approach?"
 	case s == Diagnose && f.Risk.AtLeast(High):
 		return true, "Is the root cause right, and should the fix go ahead?"
+	case s == Verify && next == Release && f.App:
+		// At any risk: a build on people's phones can't be recalled, only
+		// replaced, and store review adds days to every fix.
+		return true, "Is the evidence enough to send this build to people's devices? It can't be recalled, only replaced."
 	case s == Verify && next == Release && f.Risk.AtLeast(Normal):
 		return true, "Is the evidence enough to release to users?"
 	case s == Decide && f.Risk.AtLeast(Normal):

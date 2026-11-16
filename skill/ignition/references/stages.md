@@ -16,6 +16,11 @@ Two things change a route:
 - `release: none` in the brief's frontmatter skips release. Use it only when
   nothing ships to users, and log why.
 
+`release: app` doesn't change the route. It marks an item that ships in an
+app people install (iOS, Android, desktop). Its release record asks for
+more (see "release" below), and the owner decides before release at every
+risk: an installed build can't be recalled, only replaced.
+
 The owner decides when an item leaves these stages:
 
 | Leaving | Low | Normal | High |
@@ -24,7 +29,7 @@ The owner decides when an item leaves these stages:
 | design (initiative) | | owner | owner |
 | design (feature) | | | owner |
 | diagnose | | | owner |
-| verify, into release | | owner | owner |
+| verify, into release | app only | owner | owner |
 | decision | | owner | owner |
 
 An item with no risk set is treated as high. `ignition check` re-checks
@@ -196,6 +201,40 @@ digest. Under Rollback, give the real route back and whether it's compatible
 with data written since. Under Production verification, describe the real
 user journey you checked after release, with evidence. A health check isn't
 enough.
+
+### An app (`release: app`)
+
+**Record:** `release.md`: Revision, Builds, Checks, Rollout, Compatibility,
+Rollback, Production verification.
+
+An app reaches people as a build on their device, through a store or a
+testing track. It isn't a deployment you can roll back. So:
+
+- **Before release, in verify,** test the **release build**, not only debug
+  builds and unit tests. Release builds are optimized, shrunk and signed
+  differently, and they fail in ways debug builds don't. Run the critical
+  journey on a release build: on a simulator or emulator, or on a device.
+  Compare every changed screen with its design, from screenshots of the
+  running app. Record each as evidence, so the screens are looked at, not
+  just tested.
+- **Builds:** name each platform's version and build number, where it went,
+  and the server environment it talks to. Each store needs a higher number
+  than its last upload, so read the last one from the store, not memory.
+- **Rollout:** start with testers or a staged percentage. Say how to halt
+  it, and expire or replace the builds this one supersedes.
+- **Compatibility:** older builds stay installed for months. Say which
+  versions the server must still serve, and whether this release changes
+  anything they rely on: API shape, data, sync format.
+- **Rollback:** there's no route back to an older build. Say what you'd do
+  instead: halt the rollout, expire the build, turn the feature off from the
+  server, or ship a fix through review.
+- **Production verification:** install it the way people do, from the store
+  or the testing track, on a real device. Then run the journey. A simulator
+  or a local build doesn't count.
+
+Uploading and publishing need credentials only the owner should hold. Use
+the project's release route (`PROJECT.md`, Environments), never a shortcut
+around its checks.
 
 ## observe
 
