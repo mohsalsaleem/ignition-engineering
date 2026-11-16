@@ -116,6 +116,9 @@ test what will ship, not only the debug build:
   what's clipped or cramped. Record each comparison as evidence with
   --method naming the screenshot.
 - Never use a simulator or device someone is signed in on for manual checks.
+- Health data, camera, notifications, background work and purchases need a
+  real device. Without one, record them as inconclusive with --limits.
+The Ignition skill's references/mobile.md, "Verify", has the full list.
 `)
 	}
 	if unmet := it.Unmet(model.Verify); len(unmet) > 0 {
