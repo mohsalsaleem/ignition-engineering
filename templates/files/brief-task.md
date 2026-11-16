@@ -12,7 +12,7 @@ created: {{.Created}}
 
 ## Request
 
-<!-- What was asked, in the requester's words, and by whom. Set risk (low, normal, high) and size (small, medium, large) above. If nothing will ship to users, add `release: none` above to skip the release stage. -->
+<!-- What was asked, in the requester's words, and by whom. Set risk (low, normal, high) and size (small, medium, large) above. If nothing will ship to users, add `release: none` above to skip the release stage. If it ships in an app people install (iOS, Android, desktop), add `release: app`. -->
 
 ## Done when
 

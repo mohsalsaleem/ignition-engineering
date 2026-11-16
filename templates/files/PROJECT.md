@@ -10,7 +10,7 @@
 
 ## Environments
 
-<!-- Local, staging, production: how each is deployed and checked. -->
+<!-- Local, staging, production: how each is deployed and checked. For an app people install: each platform's stores and testing tracks, which server environment each build talks to, how builds are numbered, and the command or script that uploads and publishes (the release route). -->
 
 ## Commands
 

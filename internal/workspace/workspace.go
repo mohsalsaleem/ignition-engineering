@@ -149,6 +149,7 @@ func (it *Item) Facts() model.Facts {
 		Risk:      model.Risk(it.Brief.Get("risk")),
 		Size:      it.Brief.Get("size"),
 		NoRelease: it.Brief.Get("release") == "none",
+		App:       it.Brief.Get("release") == "app",
 		Child:     it.Brief.Get("parent") != "",
 	}
 }
@@ -204,7 +205,7 @@ func (w *Workspace) NewItem(kind model.Kind, title, risk, size, parent string, b
 	stage := model.First(kind)
 	data := map[string]string{"ID": id, "Kind": string(kind), "Title": title, "Stage": string(stage),
 		"Risk": risk, "Size": size, "Parent": parent, "Created": w.stamp()}
-	text, err := templates.Render(templates.Name(model.BriefDoc, kind), data)
+	text, err := templates.Render(templates.Name(model.BriefDoc, model.Facts{Kind: kind}), data)
 	if err != nil {
 		return nil, err
 	}

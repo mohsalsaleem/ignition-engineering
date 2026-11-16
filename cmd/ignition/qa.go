@@ -100,6 +100,24 @@ func (c *cli) qa(fs *flag.FlagSet, args []string) error {
 			p("- %s %s, criteria %s, by %s: %s\n", e.Get("id"), e.Get("result"), crit, e.Get("by"), e.Get("claim"))
 		}
 	}
+	if f.App {
+		p(`
+## This ships in an app people install
+
+Once a build is on people's devices it can't be recalled, only replaced, so
+test what will ship, not only the debug build:
+- Build the release configuration the way the project's release route does
+  (optimized, shrunk, signed, pointed at the right server) and run the
+  critical journey on it, on a simulator, emulator or device. Release builds
+  fail in ways debug builds and unit tests don't.
+- Take screenshots of every changed screen from the running app, light and
+  dark and at the largest text size where the app supports them. Compare
+  each with its design: what's there, what's missing, what belongs elsewhere,
+  what's clipped or cramped. Record each comparison as evidence with
+  --method naming the screenshot.
+- Never use a simulator or device someone is signed in on for manual checks.
+`)
+	}
 	if unmet := it.Unmet(model.Verify); len(unmet) > 0 {
 		p("\n## Verify still needs\n\n")
 		for _, u := range unmet {

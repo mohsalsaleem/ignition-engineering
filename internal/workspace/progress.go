@@ -133,6 +133,9 @@ func (it *Item) Check() []string {
 	if v := it.Brief.Get("risk"); v != "" && !slices.Contains(model.Risks, model.Risk(v)) {
 		out = append(out, fmt.Sprintf("brief.md: risk %q is not low, normal or high", v))
 	}
+	if v := it.Brief.Get("release"); v != "" && !slices.Contains(model.Releases, v) {
+		out = append(out, fmt.Sprintf("brief.md: release %q is not %s", v, strings.Join(model.Releases, " or ")))
+	}
 	if !model.OnRoute(f, it.Stage()) {
 		return append(out, fmt.Sprintf("brief.md: stage %q isn't on the %s route (%s)", it.Stage(), f.Kind, joinStages(model.Route(f))))
 	}
@@ -237,7 +240,7 @@ func (w *Workspace) Advance(id string, cp *Checkpoint, by Actor) (model.Stage, e
 	}
 	if a := model.Opens(next); a != "" {
 		if _, ok := it.Docs[a]; !ok {
-			text, err := templates.Render(templates.Name(a, it.Kind()), map[string]string{"ID": id, "Title": it.Title(), "Parent": it.Brief.Get("parent")})
+			text, err := templates.Render(templates.Name(a, it.Facts()), map[string]string{"ID": id, "Title": it.Title(), "Parent": it.Brief.Get("parent")})
 			if err != nil {
 				return "", err
 			}

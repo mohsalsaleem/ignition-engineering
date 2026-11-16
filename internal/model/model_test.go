@@ -49,6 +49,9 @@ func TestOwnerDecisions(t *testing.T) {
 		{Facts{Kind: Bug, Risk: Normal}, Verify, true},
 		{Facts{Kind: Task, Risk: Normal, NoRelease: true}, Verify, false},
 		{Facts{Kind: Task, Risk: Low}, Verify, false},
+		{Facts{Kind: Task, Risk: Low, App: true}, Verify, true},
+		{Facts{Kind: Feature, Risk: Low, App: true}, Verify, true},
+		{Facts{Kind: Task, Risk: Low, App: true, NoRelease: true}, Verify, false},
 	}
 	for _, c := range cases {
 		if got, _ := OwnerDecides(c.f, c.stage); got != c.want {
@@ -98,5 +101,21 @@ func TestDesignDepthFollowsSizeAndRisk(t *testing.T) {
 		if got := slices.Contains(designSections(c.f), c.section); got != c.want {
 			t.Errorf("%+v requires %q = %v, want %v", c.f, c.section, got, c.want)
 		}
+	}
+}
+
+func TestAnAppReleaseRecordsBuildsRolloutAndCompatibility(t *testing.T) {
+	names := func(f Facts) []string { return Exit(f, Release)[0].Names }
+	app := names(Facts{Kind: Feature, Risk: Normal, App: true})
+	for _, want := range []string{"Revision", "Builds", "Checks", "Rollout", "Compatibility", "Rollback", "Production verification"} {
+		if !slices.Contains(app, want) {
+			t.Errorf("an app release doesn't require %q (%v)", want, app)
+		}
+	}
+	if web := names(Facts{Kind: Feature, Risk: Normal}); slices.Contains(web, "Builds") {
+		t.Errorf("a deployment requires app sections: %v", web)
+	}
+	if r := Route(Facts{Kind: Feature, Risk: Normal, App: true}); !slices.Equal(r, Route(Facts{Kind: Feature, Risk: Normal})) {
+		t.Errorf("release: app changed the route: %v", r)
 	}
 }
